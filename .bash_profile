@@ -133,7 +133,7 @@ function setupSwarm # host
 }
 
 alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
-alias setupSwarmDelta='setup setupSwarm delta-dock-services'
+alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
 alias setupSwarmEpsilon='setup setupSwarm epsilon-dock-services'
 
 function setupSwarmStaging # host
