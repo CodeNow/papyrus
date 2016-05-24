@@ -2,15 +2,13 @@
 
 # extra autocomplete
 . $HOME/.bash_completion.d/*
+source $HOME/.envs
 
 #RUNABLE VARS
 export NODE_ENV=development
 export NODE_PATH=./lib
 export CN=2335750
 export PATH="$PATH:./node_modules/.bin:/usr/local/sbin"
-# kube
-export PATH="$PATH:$HOME/.profile"
-export PATH="$PATH:$HOME/run/devops-scripts/kubernetes/platforms/darwin/amd64/"
 
 export DOCKER_HOST=tcp://localhost:52375
 export DOCKER_CERT_PATH=$HOME/run/devops-scripts/ansible/roles/docker_client/files/certs/swarm-manager
@@ -43,8 +41,6 @@ alias stopDbs='unsetDocker; docker kill redis mongo neo4j rabbit; docker rm redi
 alias restartDbs='stopDbs || startDbs'
 
 #CD
-export RUN_ROOT=$HOME/run
-export REPO_BASE=$RUN_ROOT
 export RUN_TMP=$RUN_ROOT/.tmp
 
 alias cdr='cd $RUN_ROOT'
