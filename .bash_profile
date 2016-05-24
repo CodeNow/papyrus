@@ -34,13 +34,13 @@ alias s="npm start"
 alias it="i&&t"
 alias its="i&&t&&s"
 # DOCKER FOR MAC
+alias unsetDocker='unset `env | grep DOCKER | cut -d'=' -f 1 | xargs`'
 alias startDbs="unsetDocker; docker run -d -p 6379:6379 --name=redis redis:3.0;\
   docker run -d -p 27017:27017 --name=mongo mongo:3.0;\
   docker run -d -p 7474:7474 -e NEO4J_AUTH=none --name=neo4j neo4j:2.3;\
   docker run -d -p 15672:15672 -p 5672:5672 --name=rabbit rabbitmq:3-management;"
 alias stopDbs='unsetDocker; docker kill redis mongo neo4j rabbit; docker rm redis mongo neo4j rabbit'
 alias restartDbs='stopDbs || startDbs'
-alias unsetDocker='unset `env | grep DOCKER | cut -d'=' -f 1 | xargs`'
 
 #CD
 export RUN_ROOT=$HOME/run
@@ -49,13 +49,7 @@ export RUN_TMP=$RUN_ROOT/.tmp
 
 alias cdr='cd $RUN_ROOT'
 alias cdo='cd $RUN_ROOT/other'
-alias cddw='cd $RUN_ROOT/dockworker'
-alias cddl='cd $RUN_ROOT/docklet'
-alias cdfd='cd $RUN_ROOT/frontdoor'
 alias cdapi='cd $RUN_ROOT/api'
-alias cdapis='cd $RUN_ROOT/api-server'
-alias cdweb='cd $RUN_ROOT/runnable-web'
-alias cdh='cd $RUN_ROOT/harbourmaster'
 alias sb='source ~/.bash_profile'
 alias v='subl'
 alias b='v ~/.bash_profile'
@@ -93,15 +87,6 @@ alias gmm='git merge master '
 alias diffs='git difftool --staged'
 alias diffc='git difftool HEAD^ HEAD'
 alias gbrm='git branch --merged | grep -v "\*" | xargs -n 1 git branch -d'
-
-alias createDock='docker-machine create --driver virtualbox'
-function setupDock # dock name
-{
-  eval "$(docker-machine env $1)"
-}
-alias setupDocker='VBoxManage discardstate dev && eval "$(docker-machine env dev)"'
-alias setupMesos='source ~/dcos/bin/env-setup'
-alias dm='docker-machine'
 
 # Docker
 alias d='echo y|docks'
@@ -350,50 +335,7 @@ function ss #server
   echo ssh ubuntu@$1
   ssh ubuntu@$1
 }
-#XXX TODO expand for all servers
-#ALPHA
-function prodMavisAddDock # <dock> <org>
-{
-  echo   curl -X PUT "http://mavis.runnable.io/docks?host=http://$1:4242&tags=$2"
-  curl -X PUT "http://mavis.runnable.io/docks?host=http://$1:4242&tags=$2"
-}
 
-function prodMavisSetValue # <dock> <key> <value>
-{
-  curl -X POST "http://mavis.runnable.io/docks?host=$1&key=$2&value=$3"
-}
-
-function stageMavisSetValue # <dock> <key> <value>
-{
-  curl -X POST "http://mavis-staging-codenow.runnableapp.com/docks?host=$1&key=$2&value=$3"
-}
-
-function prodSetNumBuilds # <dockIp> <value>
-{
-  prodMavisSetValue $1 numBuilds $2
-}
-
-function prodSetNumContainers # <dockIp> <value>
-{
-  prodMavisSetValue $1 numContainers $2
-}
-function prodRmDock # <dock rul>
-{
-  echo   curl -X DELETE mavis.runnable.io/docks?host="http://$1:4242"
-  curl -X DELETE mavis.runnable.io/docks?host="http://$1:4242"
-}
-function prodGetDocs # <dock rul>
-{
-  curl mavis.runnable.io/docks | json_pp
-}
-
-# DB
-function flushall
-{
-  mongo --quiet --eval 'db.getMongo().getDBNames().forEach(function(i){db.getSiblingDB(i).dropDatabase()})'
-  redis-cli flushall
-  rabbitmqctl stop; rabbitmqctl force_reset; rabbitmqctl start_app
-}
 # AUTO COMPLETE
 _ssh()
 {
@@ -407,31 +349,17 @@ _ssh()
     return 0
 }
 complete -F _ssh ssh
-#RANDOM DOCKER COMMANDS
-#alias killAllDocker="sudo docker kill `sudo docker ps | awk '{print $1}'`"
-#alias stopDockerService="sudo service docker stop"
-#alias createDockerBuildEnv=""
-#alias compileDocker="sudo docker run -lxc-conf=lxc.aa_profile=unconfined -privileged -v `pwd`:/go/src/github.com/dotcloud/docker docker-0.6.3 hack/make.sh binary"
-#alias rmAllContainers="docker rm `docker ps -notrunc -a -q`"
-#alias stopRunningContainers="docker stop `docker ps -notrunc -q`"
-# alias mountRun3='sshfs ubuntu@runnable3.net:/home/ubuntu ~/run3'
-#alias getAttachedDocklets='redis-cli -h 10.0.1.20 lrange frontend:docklet.runnable.com 0 -1'
-#alias rmAttachedDocklet='ssh ubuntu@redis "redis-cli -h 10.0.1.20 lrem frontend:docklet.runnable.com 1 http://10.0.2.234:4244"'
 
 # sublime
 export SUBL_SNIPPIT_PATH='$HOME/Library/Application Support/Sublime Text 3/Packages/User/'
 
-## TEMP
-alias start_services='echo "started session" >> /Volumes/track_projectx.file && ssh -N -f -M -S /Volumes/socketprojectx -L 27017:localhost:27017  -L 6379:localhost:6379 -L 5672:localhost:5672 -L 7474:localhost:7474 ubuntu@projectx'
-alias kill_services='ssh -S /Volumes/socketprojectx -O exit projectx'
-alias restart_services='curl projectx:1337/restartservices'
 
 alias listOpenPorts='sudo lsof -i -P | grep -i "listen"'
 
-function rollDocks # new_ami target_env
-{
-  local ami="${1}"
-  local target_env="${2}"
-  echo docks aws list -e $target_env \| grep large \| grep -v $ami \| sort -u -n -k 4 \| awk '{print $6}' \| xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-  docks aws list -e $target_env | grep large | grep -v $ami | sort -u -n -k 4 | awk '{print $6}' | xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-}
+# function rollDocks # new_ami target_env
+# {
+#   local ami="${1}"
+#   local target_env="${2}"
+#   echo docks aws list -e $target_env \| grep large \| grep -v $ami \| sort -u -n -k 4 \| awk '{print $6}' \| xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
+#   docks aws list -e $target_env | grep large | grep -v $ami | sort -u -n -k 4 | awk '{print $6}' | xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
+# }
