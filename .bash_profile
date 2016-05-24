@@ -31,12 +31,17 @@ export AWS_DEFAULT_REGION='us-west-2'
 alias i="npm install"
 alias t="npm test"
 alias s="npm start"
-
 alias it="i&&t"
 alias its="i&&t&&s"
-alias startMR="redis-server&mongod&neo4j start&rabbitmq-server&"
-alias stopMR='redis-cli shutdown&mongo --eval "db.getSiblingDB(\"admin\").shutdownServer()"&neo4j stop&rabbitmqctl stop_app&'
+# DOCKER FOR MAC
+alias startDbs="unsetDocker; docker run -d -p 6379:6379 --name=redis redis:3.0;\
+  docker run -d -p 27017:27017 --name=mongo mongo:3.0;\
+  docker run -d -p 7474:7474 -e NEO4J_AUTH=none --name=neo4j neo4j:2.3;\
+  docker run -d -p 15672:15672 -p 5672:5672 --name=rabbit rabbitmq:3-management;"
+alias stopDbs='unsetDocker; docker kill redis mongo neo4j rabbit; docker rm redis mongo neo4j rabbit'
+alias restartDbs='stopDbs || startDbs'
 alias unsetDocker='unset `env | grep DOCKER | cut -d'=' -f 1 | xargs`'
+
 #CD
 export RUN_ROOT=$HOME/run
 export REPO_BASE=$RUN_ROOT
