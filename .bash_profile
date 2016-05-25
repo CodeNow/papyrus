@@ -210,17 +210,6 @@ alias gpatch='gbc master && gp && npm version patch'
 alias gminor='gbc master && gp && npm version minor'
 alias gmajor='gbc master && gp && npm version major'
 
-
-#RUNNABLE
-function PushB #<Branch> <target>
-{
-  fab $2 branch:$1 deploy
-}
-
-alias CCPushM='PushB master integration'
-alias R3PushM='PushB master runnable3'
-alias PWPushM='PushB master staging'
-
 #SEARCHING
 alias search='find . | grep -i --color=auto '
 alias sh='search '
