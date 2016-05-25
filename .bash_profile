@@ -251,31 +251,30 @@ for tenv in $ENVS; do
   alias ${tenv}DockCommand="dockCommand $tenv"
 done
 
+# deploy passed tag
+# if no tag passed use latest tag
 function deploy # <env> <app> <tag> [...extra]
 {
   local tenv="${1}-hosts"
   local repo="${ANSIBLE_ROOT}/${2}.yml"
   local tag="${3}"
+  shift 2
+
+
   if [[ "${repo}" = "web" ]]; then
     repo_folder="${RUN_ROOT}/runnable-angular"
   fi
-  shift 3
-  echo ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e stop_time=5 -e git_branch="${tag}" "${repo}" -t deploy "$@"
-  ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e stop_time=5 -e git_branch="${tag}" "${repo}" -t deploy "$@"
 
-}
-
-function gdeploy # <env> <repo> [...extra]
-{
-  local tenv="${1}"
-  local repo="${2}"
-  local repo_folder="${RUN_ROOT}/${repo}"
-  if [[ "$2" = "web" ]]; then
-    repo_folder="${RUN_ROOT}/runnable-angular"
+  if [[ "${tag}" = "" ]]; then
+    echo "no tag passed, looking for latest commit"
+    tag=`git -C "${repo_folder}" describe --abbrev=0 --tags master`
+  else
+    shift 1
   fi
-  shift 2
-  echo deploy "${tenv}" "${repo}" `git -C "${repo_folder}" describe --abbrev=0 --tags master` "$@"
-  deploy "${tenv}" "${repo}" `git -C "${repo_folder}" describe --abbrev=0 --tags master` "$@"
+
+  echo ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${repo}" -t deploy "${@}"
+  ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${repo}" -t deploy "${@}"
+
 }
 
 _deploy()
@@ -301,11 +300,8 @@ _deploy()
 complete -F _deploy deploy
 
 for tenv in $ENVS; do
-  upper="$(tr '[:lower:]' '[:upper:]' <<< ${tenv:0:1})${tenv:1}"
-  alias ${upper}Deploy="deploy $tenv"
-  alias ${tenv}Deploy="gdeploy $tenv"
+  alias ${tenv}Deploy="deploy $tenv"
   complete -F _deploy ${tenv}Deploy
-  complete -F _deploy ${upper}Deploy
 done
 
 function fcmd
