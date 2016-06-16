@@ -70,8 +70,8 @@ export ANSIBLE_ROOT=$DEVOPS_SCRIPTS_PATH/ansible
 export RETRY_FILES_SAVE_PATH=$ANSIBLE_ROOT
 
 #GIT
-alias submit='git push '
-alias tags='submit && submit --tags'
+alias push='git push '
+alias tags='push && push --tags'
 alias gca='git commit -am '
 alias gc='git commit -m '
 alias gs='git status'
@@ -206,9 +206,9 @@ function gbs #send branch to server
 {
   git push origin $1
 }
-alias gpatch='gbc master && gp && npm version patch'
-alias gminor='gbc master && gp && npm version minor'
-alias gmajor='gbc master && gp && npm version major'
+alias gpatch='gbc master && gp && npm version patch && tags'
+alias gminor='gbc master && gp && npm version minor && tags'
+alias gmajor='gbc master && gp && npm version major && tags'
 
 #SEARCHING
 alias search='find . | grep -i --color=auto '
@@ -256,10 +256,12 @@ done
 function deploy # <env> <app> <tag> [...extra]
 {
   local tenv="${1}-hosts"
-  local repo="${ANSIBLE_ROOT}/${2}.yml"
+  local repo="${2}"
   local tag="${3}"
-  shift 2
 
+  local deployFile="${ANSIBLE_ROOT}/${repo}.yml"
+  local repo_folder="${RUN_ROOT}/${repo}"
+  shift 2
 
   if [[ "${repo}" = "web" ]]; then
     repo_folder="${RUN_ROOT}/runnable-angular"
@@ -272,8 +274,8 @@ function deploy # <env> <app> <tag> [...extra]
     shift 1
   fi
 
-  echo ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${repo}" -t deploy "${@}"
-  ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${repo}" -t deploy "${@}"
+  echo ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
+  ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
 
 }
 
@@ -337,6 +339,14 @@ export SUBL_SNIPPIT_PATH='$HOME/Library/Application Support/Sublime Text 3/Packa
 
 alias listOpenPorts='sudo lsof -i -P | grep -i "listen"'
 
+function cleanGhosts
+{
+  setupSwarmDelta
+  cd $ANSIBLE_ROOT
+  local password=`gg api_mongo_auth | grep delta | sed s/.*api://`
+  echo MONGO_AUTH=api:${password} docks ghost -e delta | grep Created  | awk '{ print $2 }' | xargs docker rm
+  MONGO_AUTH=api:${password} docks ghost -e delta | grep Created | awk '{ print $2 }' | xargs docker rm
+}
 # function rollDocks # new_ami target_env
 # {
 #   local ami="${1}"
