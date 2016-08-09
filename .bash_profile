@@ -1,8 +1,15 @@
-# secrets
-
 # extra autocomplete
 . $HOME/.bash_completion.d/*
-source $HOME/.envs
+
+# private ENV's like AWS keys
+if [ -f $HOME/.envs ]; then
+    source $HOME/.envs
+fi
+
+# add personal shortcuts
+if [ -f $HOME/.shortkeys ]; then
+    source $HOME/.shortkeys
+fi
 
 #RUNABLE VARS
 export NODE_ENV=development
@@ -14,44 +21,33 @@ export DOCKER_HOST=tcp://localhost:52375
 export DOCKER_CERT_PATH=$HOME/run/devops-scripts/ansible/roles/docker_client/files/certs/swarm-manager
 export DOCKER_TLS_VERIFY=1
 
-#MYVARS
-MODE_PATH=~/.colorMode
-PS1="\W$ "
-
-export EDITOR=subl
-alias of='open .'
 export ENVS='delta gamma epsilon stage'
 
 # AWS
 export AWS_DEFAULT_REGION='us-west-2'
 
-#NODE
-alias i="npm install"
-alias t="npm test"
-alias s="npm start"
-alias it="i&&t"
-alias its="i&&t&&s"
+# GITHUB
+# get github username from id
+function un # id
+{
+  curl https://api.github.com/user/$1 | grep login
+}
+# get id from username
+function uid # name
+{
+  curl https://api.github.com/users/$1 | grep id
+}
+
 # DOCKER FOR MAC
 alias unsetDocker='unset `env | grep DOCKER | cut -d'=' -f 1 | xargs`'
 alias startDbs="unsetDocker; docker run -d -p 6379:6379 --name=redis redis:3.0;\
   docker run -d -p 27017:27017 --name=mongo mongo:3.0;\
-  docker run -d -p 7474:7474 -e NEO4J_AUTH=none --name=neo4j neo4j:2.3;\
   docker run -d -p 15672:15672 -p 5672:5672 --name=rabbit rabbitmq:3-management;"
-alias stopDbs='unsetDocker; docker kill redis mongo neo4j rabbit; docker rm redis mongo neo4j rabbit'
+alias stopDbs='unsetDocker; docker kill redis mongo rabbit; docker rm redis mongo rabbit'
 alias restartDbs='stopDbs || startDbs'
 
 #CD
 export RUN_TMP=$RUN_ROOT/.tmp
-
-alias cdr='cd $RUN_ROOT'
-alias cdo='cd $RUN_ROOT/other'
-alias cdapi='cd $RUN_ROOT/api'
-alias sb='source ~/.bash_profile'
-alias v='subl'
-alias b='v ~/.bash_profile'
-alias ossh='v $RUN_ROOT/devops-scripts/ssh/config'
-alias cda='cd $RUN_ROOT/devops-scripts/ansible'
-alias inpm='sudo npm install -g npm@2.8.3'
 
 function c # folder in runnable
 {
@@ -68,39 +64,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 export DEVOPS_SCRIPTS_PATH=$HOME/run/devops-scripts
 export ANSIBLE_ROOT=$DEVOPS_SCRIPTS_PATH/ansible
 export RETRY_FILES_SAVE_PATH=$ANSIBLE_ROOT
-
-#GIT
-alias push='git push '
-alias tags='push && push --tags'
-alias gca='git commit -am '
-alias gc='git commit -m '
-alias gs='git status'
-alias gd='git diff'
-alias gp='git pull '
-alias gb='git branch'
-__git_complete gb _git_branch
-alias gmm='git merge master '
-alias diffs='git difftool --staged'
-alias diffc='git difftool HEAD^ HEAD'
-alias gbrm='git branch --merged | grep -v "\*" | xargs -n 1 git branch -d'
-
-# Docker
-alias d='echo y|docks'
-function dp # docks args
-{
-  echo docks $* -e delta
-  d $* -e delta
-}
-function ds # docks args
-{
-  echo docks $* -e staging
-  d $* -e staging
-}
-function de # docks args
-{
-  echo docks $* -e epsilon
-  d $* -e epsilon
-}
 
 function setup # <func> <func_args>
 {
@@ -160,81 +123,6 @@ alias setupConsulGamma='setup setupConsul "$(ssh gamma-consul-a hostname -i)" ga
 alias setupConsulDelta='setup setupConsul "$(ssh delta-consul-a hostname -i)" delta-consul-a'
 alias setupConsulEpsilon='setup setupConsul "$(ssh epsilon-consul-a hostname -i)" epsilon-consul-a'
 alias setupConsulStaging='setup setupConsul "$(ssh delta-staging-data hostname -i)" delta-staging-data'
-
-function gbc #[branch]
-{
-  if [[ $# -ne 1 ]]; then
-      echo "need to pick branch"
-      gb
-  else
-    git checkout $1
-  fi
-
-}
-__git_complete gbc _git_branch
-
-function newb #branch_to_create
-{
-   gbc master
-   gp
-   gb $1
-   gbc $1
-   git push --set-upstream origin $1
-}
-
-function gm2m
-{
-  gbc master
-  gp
-  git merge $1
-}
-function gu
-{
-  gbc master
-  gp
-  gbc $1
-  gm
-}
-function gbd #delete branch from server and here
-{
-  gbc master
-  git push origin --delete $1
-  gb -d $1
-}
-
-function gbs #send branch to server
-{
-  git push origin $1
-}
-alias gpatch='gbc master && gp && npm version patch && tags'
-alias gminor='gbc master && gp && npm version minor && tags'
-alias gmajor='gbc master && gp && npm version major && tags'
-
-#SEARCHING
-alias search='find . | grep -i --color=auto '
-alias sh='search '
-alias fs='find . -type f | grep -i --color=auto '
-
-function gh
-{
-    echo grep -n --color=auto -r "$1" .
-    grep -n --color=auto  -r "$1" .
-}
-function gg
-{
-    echo git grep -n --color=auto -r "$1" .
-    git grep -n --color=auto "$1" .
-}
-
-function vv
-{
-    CNT=`fs $1 | wc -l`
-    if [[ $CNT -eq 1 ]]; then
-      v `fs $1`
-    else
-        echo "more/less then 1 file $CNT"
-    fi
-}
 
 # ANSIBLE
 
@@ -306,11 +194,6 @@ for tenv in $ENVS; do
   complete -F _deploy ${tenv}Deploy
 done
 
-function fcmd
-{
-  grep --color=auto $1 ~/.bash_profile
-}
-
 #SERVER MANAGMENT
 alias rmssh='rm $HOME/.ssh/known_hosts'
 function ss #server
@@ -332,10 +215,6 @@ _ssh()
     return 0
 }
 complete -F _ssh ssh
-
-# sublime
-export SUBL_SNIPPIT_PATH='$HOME/Library/Application Support/Sublime Text 3/Packages/User/'
-
 
 alias listOpenPorts='sudo lsof -i -P | grep -i "listen"'
 
