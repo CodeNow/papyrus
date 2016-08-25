@@ -28,8 +28,8 @@ export AWS_DEFAULT_REGION='us-west-2'
 
 
 # IMPORTS
-source ./lib/github.sh
-source ./lib/big-poppa.sh
+source ./.helpers.d/github.sh
+source ./.helpers.d/big-poppa.sh
 
 # DOCKER FOR MAC
 alias unsetDocker='unset `env | grep DOCKER | cut -d'=' -f 1 | xargs`'
