@@ -1,5 +1,5 @@
 # extra autocomplete
-. $HOME/.bash_completion.d/*
+. ./.bash_completion.d/*
 
 # private ENV's like AWS keys
 if [ -f $HOME/.envs ]; then
