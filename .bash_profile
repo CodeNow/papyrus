@@ -26,17 +26,10 @@ export ENVS='delta gamma epsilon stage'
 # AWS
 export AWS_DEFAULT_REGION='us-west-2'
 
-# GITHUB
-# get github username from id
-function un # id
-{
-  curl https://api.github.com/user/$1 | grep login
-}
-# get id from username
-function uid # name
-{
-  curl https://api.github.com/users/$1 | grep id
-}
+
+# IMPORTS
+source ./.helpers.d/github.sh
+source ./.helpers.d/big-poppa.sh
 
 # DOCKER FOR MAC
 alias unsetDocker='unset `env | grep DOCKER | cut -d'=' -f 1 | xargs`'
