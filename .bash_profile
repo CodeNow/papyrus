@@ -38,6 +38,9 @@ export PATH="$PATH:./node_modules/.bin:/usr/local/sbin"
 # name of all our current active environments
 export ENVS='delta gamma epsilon stage'
 
+# remove `:` from COMP_WORDBREAKS to allow auto complete for ::
+export COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
+
 # Imports
 source $PAPYRUS_ROOT/.helpers.d/github.sh
 source $PAPYRUS_ROOT/.helpers.d/big-poppa.sh
