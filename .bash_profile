@@ -1,228 +1,52 @@
+#!/bin/bash
+#
+# Papyrus
+
+if [ -z ${RUN_ROOT+x} ]; then
+  export RUN_ROOT=$HOME/run
+fi
+
+if [ -z ${PAPYRUS_ROOT+x} ]; then
+  export PAPYRUS_ROOT=$RUN_ROOT/papyrus
+fi
+
 # extra autocomplete
-. $HOME/.bash_completion.d/*
+. $PAPYRUS_ROOT/.bash_completion.d/*
 
 # private ENV's like AWS keys
-if [ -f $HOME/.envs ]; then
-    source $HOME/.envs
+if [ -f $PAPYRUS_ROOT/.envs ]; then
+  source $PAPYRUS_ROOT/.envs
 fi
 
 # add personal shortcuts
-if [ -f $HOME/.shortkeys ]; then
-    source $HOME/.shortkeys
+if [ -f $PAPYRUS_ROOT/.shortkeys ]; then
+  source $PAPYRUS_ROOT/.shortkeys
 fi
 
-#RUNABLE VARS
-export NODE_ENV=development
-export NODE_PATH=./lib
-export CN=2335750
-export PATH="$PATH:./node_modules/.bin:/usr/local/sbin"
-
-export DOCKER_HOST=tcp://localhost:52375
-export DOCKER_CERT_PATH=$HOME/run/devops-scripts/ansible/roles/docker_client/files/certs/swarm-manager
-export DOCKER_TLS_VERIFY=1
-
-export ENVS='delta gamma epsilon stage'
-
-# AWS
-export AWS_DEFAULT_REGION='us-west-2'
-
-
-# IMPORTS
-source ./.helpers.d/github.sh
-source ./.helpers.d/big-poppa.sh
-
-# DOCKER FOR MAC
-alias unsetDocker='unset `env | grep DOCKER | cut -d'=' -f 1 | xargs`'
-alias startDbs="unsetDocker; docker run -d -p 6379:6379 --name=redis redis:3.0;\
-  docker run -d -p 27017:27017 --name=mongo mongo:3.0;\
-  docker run -d -p 15672:15672 -p 5672:5672 --name=rabbit rabbitmq:3-management;"
-alias stopDbs='unsetDocker; docker kill redis mongo rabbit; docker rm redis mongo rabbit'
-alias restartDbs='stopDbs || startDbs'
-
-#CD
-export RUN_TMP=$RUN_ROOT/.tmp
-
-function c # folder in runnable
-{
-  cd $RUN_ROOT/$1
-}
-_c () {
-    local cur=${COMP_WORDS[COMP_CWORD]}
-    COMPREPLY=( $(compgen -W "$(ls $RUN_ROOT)" -- $cur) )
-}
-complete -o default -F _c c
-
-#ANSIBLE
-export ANSIBLE_HOST_KEY_CHECKING=False
-export DEVOPS_SCRIPTS_PATH=$HOME/run/devops-scripts
+# Papyrus constants
+# Variables used throughout Papyrus to setup functionality
+export DEVOPS_SCRIPTS_PATH=$RUN_ROOT/devops-scripts
 export ANSIBLE_ROOT=$DEVOPS_SCRIPTS_PATH/ansible
 export RETRY_FILES_SAVE_PATH=$ANSIBLE_ROOT
+export RUN_TMP=$RUN_ROOT/.tmp
 
-function setup # <func> <func_args>
-{
-  local NAME=$1
-  kill $(cat $RUN_TMP/$NAME.pid) || echo "no prev session"
-  echo "running: $*"
-  $*
-  PID="$!"
-  echo $PID > $RUN_TMP/$NAME.pid
-}
+export PATH="$PATH:./node_modules/.bin:/usr/local/sbin"
+export ENVS='delta gamma epsilon stage'
 
-function setupSwarm # host
-{
-  export DOCKER_HOST=tcp://localhost:52375
-  ssh -NL 52375:localhost:2375 "$1" &
-}
+# Imports
+source $PAPYRUS_ROOT/.helpers.d/github.sh
+source $PAPYRUS_ROOT/.helpers.d/big-poppa.sh
+source $PAPYRUS_ROOT/.helpers.d/ansible.sh
+source $PAPYRUS_ROOT/.helpers.d/server-management.sh
+source $PAPYRUS_ROOT/.helpers.d/docker.sh
 
-alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
-alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
-alias setupSwarmEpsilon='setup setupSwarm epsilon-dock-services'
+# Runnable Vars
+# Variables that should be used by every Runnable developer
+export NODE_ENV=development
+export NODE_PATH=./lib
+export ANSIBLE_HOST_KEY_CHECKING=False
 
-function setupSwarmStaging # host
-{
-  export DOCKER_HOST=tcp://swarm-staging-codenow.runnableapp.com:2375
-  export DOCKER_TLS_VERIFY=1
-}
-
-function swarmListOrg # orgId
-{
-  echo docker info 2>&1| grep -B5 "org=$1"
-  docker info 2>&1| grep -B5 "org=$1"
-}
-
-function swarmImageBuilder
-{
-  echo 'docker ps -a | grep image-build | cut -f 1 -d' ' | xargs docker rm'
-  docker ps -a | grep image-build | cut -f 1 -d' ' | xargs docker rm
-}
-
-function setupRabbit # host
-{
-  ssh -NL 8080:localhost:54320 "$1" &
-}
-
-alias setupRabbitGamma='setup setupRabbit gamma-rabbit'
-alias setupRabbitDelta='setup setupRabbit delta-rabbit'
-alias setupRabbitEpsilon='setup setupRabbit epsilon-rabbit'
-alias setupRabbitStaging='setup setupRabbit delta-staging-data'
-
-function setupConsul # <ip> <host>
-{
-  echo tunneling ssh -NL 58500:"$1":8500 "$2"
-  ssh -NL 58500:"$1":8500 "$2" &
-}
-
-alias setupConsulGamma='setup setupConsul "$(ssh gamma-consul-a hostname -i)" gamma-consul-a'
-alias setupConsulDelta='setup setupConsul "$(ssh delta-consul-a hostname -i)" delta-consul-a'
-alias setupConsulEpsilon='setup setupConsul "$(ssh epsilon-consul-a hostname -i)" epsilon-consul-a'
-alias setupConsulStaging='setup setupConsul "$(ssh delta-staging-data hostname -i)" delta-staging-data'
-
-# ANSIBLE
-
-function dockCommand # <host> <command>
-{
-  ANSIBLE_HOST_PATH="$1-hosts"
-  ANSIBLE_DOCK_COMMAND=$2
-  shift 2
-  echo ansible -i "$ANSIBLE_ROOT/$ANSIBLE_HOST_PATH" docks -m shell -a "$ANSIBLE_DOCK_COMMAND" "$@"
-  ansible -i "$ANSIBLE_ROOT/$ANSIBLE_HOST_PATH" docks -m shell -a "$ANSIBLE_DOCK_COMMAND" "$@"
-}
-
-for tenv in $ENVS; do
-  alias ${tenv}DockCommand="dockCommand $tenv"
-done
-
-# deploy passed tag
-# if no tag passed use latest tag
-function deploy # <env> <app> <tag> [...extra]
-{
-  local tenv="${1}-hosts"
-  local repo="${2}"
-  local tag="${3}"
-
-  local deployFile="${ANSIBLE_ROOT}/${repo}.yml"
-  local repo_folder="${RUN_ROOT}/${repo}"
-  shift 2
-
-  if [[ "${repo}" = "web" ]]; then
-    repo_folder="${RUN_ROOT}/runnable-angular"
-  fi
-
-  if [[ "${tag}" = "" ]]; then
-    echo "no tag passed, looking for latest commit"
-    tag=`git -C "${repo_folder}" describe --abbrev=0 --tags master`
-  else
-    shift 1
-  fi
-
-  echo ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
-  ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
-
-}
-
-_deploy()
-{
-  local cur prev opts
-  COMPREPLY=()
-  cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD-1]}"
-  opts=`ls $ANSIBLE_ROOT/*yml | sed -e "s%$ANSIBLE_ROOT/%%g" -e "s/.yml//g"`
-
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
-    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-    return 0
-  fi
-
-  local repos=`ls -d ${RUN_ROOT}/*/ | sed -e "s%${RUN_ROOT}/%%g" -e "s%/%%g"`
-  if [[ "${repos}" == *"${prev}"* ]]; then
-    local branches=$(git --git-dir="$RUN_ROOT/$prev/.git" for-each-ref --format='%(refname:short)' refs/heads)
-    COMPREPLY=( $(compgen -W "${branches}" -- ${cur}) )
-    return 0
-  fi
-}
-complete -F _deploy deploy
-
-for tenv in $ENVS; do
-  alias ${tenv}Deploy="deploy $tenv"
-  complete -F _deploy ${tenv}Deploy
-done
-
-#SERVER MANAGMENT
-alias rmssh='rm $HOME/.ssh/known_hosts'
-function ss #server
-{
-  echo ssh ubuntu@$1
-  ssh ubuntu@$1
-}
-
-# AUTO COMPLETE
-_ssh()
-{
-    local cur prev opts
-    COMPREPLY=()
-    cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts=$(grep '^Host' ~/.ssh/config | awk '{print $2}')
-
-    COMPREPLY=( $(compgen -W "$opts" -- ${cur}) )
-    return 0
-}
-complete -F _ssh ssh
-
-alias listOpenPorts='sudo lsof -i -P | grep -i "listen"'
-
-function cleanGhosts
-{
-  setupSwarmDelta
-  cd $ANSIBLE_ROOT
-  local password=`gg api_mongo_auth | grep delta | sed s/.*api://`
-  echo MONGO_AUTH=api:${password} docks ghost -e delta | grep Created  | awk '{ print $2 }' | xargs docker rm
-  MONGO_AUTH=api:${password} docks ghost -e delta | grep Created | awk '{ print $2 }' | xargs docker rm
-}
-# function rollDocks # new_ami target_env
-# {
-#   local ami="${1}"
-#   local target_env="${2}"
-#   echo docks aws list -e $target_env \| grep large \| grep -v $ami \| sort -u -n -k 4 \| awk '{print $6}' \| xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-#   docks aws list -e $target_env | grep large | grep -v $ami | sort -u -n -k 4 | awk '{print $6}' | xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-# }
+# Global Convenience Variables
+# Variables that are not required, but useful to have declared
+export AWS_DEFAULT_REGION='us-west-2' # AWS
+export CN=2335750 # CodeNow Github ID
