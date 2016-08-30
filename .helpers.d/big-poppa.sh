@@ -1,5 +1,7 @@
 ## Big Poppa Utility Functions
 
+# TODO: make environment agnostic
+
 # Get a Big Poppa org by its id
 function bp::org_get_by_id
 {

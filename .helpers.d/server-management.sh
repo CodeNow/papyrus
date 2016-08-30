@@ -2,6 +2,40 @@
 #
 # Server Management
 
+function setupRabbit # host
+{
+  ssh -NL 8080:localhost:54320 "$1" &
+}
+
+alias setupRabbitGamma='setup setupRabbit gamma-rabbit'
+alias setupRabbitDelta='setup setupRabbit delta-rabbit'
+alias setupRabbitEpsilon='setup setupRabbit epsilon-rabbit'
+alias setupRabbitStaging='setup setupRabbit delta-staging-data'
+
+function setupConsul # <ip> <host>
+{
+  echo tunneling ssh -NL 58500:"$1":8500 "$2"
+  ssh -NL 58500:"$1":8500 "$2" &
+}
+
+alias setupConsulGamma='setup setupConsul "$(ssh gamma-consul-a hostname -i)" gamma-consul-a'
+alias setupConsulDelta='setup setupConsul "$(ssh delta-consul-a hostname -i)" delta-consul-a'
+alias setupConsulEpsilon='setup setupConsul "$(ssh epsilon-consul-a hostname -i)" epsilon-consul-a'
+alias setupConsulStaging='setup setupConsul "$(ssh delta-staging-data hostname -i)" delta-staging-data'
+
+function dockCommand # <host> <command>
+{
+  ANSIBLE_HOST_PATH="$1-hosts"
+  ANSIBLE_DOCK_COMMAND=$2
+  shift 2
+  echo ansible -i "$ANSIBLE_ROOT/$ANSIBLE_HOST_PATH" docks -m shell -a "$ANSIBLE_DOCK_COMMAND" "$@"
+  ansible -i "$ANSIBLE_ROOT/$ANSIBLE_HOST_PATH" docks -m shell -a "$ANSIBLE_DOCK_COMMAND" "$@"
+}
+
+for tenv in $ENVS; do
+  alias ${tenv}DockCommand="dockCommand $tenv"
+done
+
 alias rmssh='rm $PAPYRUS_ROOT/.ssh/known_hosts'
 function ss #server
 {
