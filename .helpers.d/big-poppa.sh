@@ -2,7 +2,7 @@
 
 source $PAPYRUS_ROOT/.helpers.d/colors.sh
 
-function bp # environment organization/user id/githubid/name value
+function big_poppa # environment organization/user id/githubid/name value
 {
   local environment entity field value host url
   local environment=$1
@@ -65,7 +65,7 @@ _bp_autocompletion()
     return 0
   fi
 }
-complete -F _bp_autocompletion bp
+complete -F _bp_autocompletion big_poppa
 
 # Get a Big Poppa org by its id
 function bp::org_get_by_id

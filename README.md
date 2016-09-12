@@ -7,15 +7,15 @@ source `.bash_profile` file from your `~/.bash_profile`
 
 ## Bash utilities
 
-### `bp`
+### `big_poppa`
 
 Big-poppa querying straight from the command line.
 
 Examples:
 
 ```
-bp gamma organization id 1 # Find org with BP id 1
-bp delta user githubId 1981198 # Find user with github id 1981198
-bp gamma user name thejsj
-bp gamma user all # Find all users in gamma
+big_poppa gamma organization id 1 # Find org with BP id 1
+big_poppa delta user githubId 1981198 # Find user with github id 1981198
+big_poppa gamma user name thejsj
+big_poppa gamma user all # Find all users in gamma
 ```
