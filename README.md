@@ -28,7 +28,7 @@ If you would like to use another tool, you can set it in your .bash_profile befo
 Example:
 
 ```
-# .bash_profile
+# ~/.bash_profile or ~/.zshrc
 alias json="jq"
-source <papyrus_bash_profile>
+source $RUN_ROOT/papyrus/.bash_profile
 ```
