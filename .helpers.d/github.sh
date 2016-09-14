@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 ## Github Utility Functions
 
 # Get a github organization/user by its ID

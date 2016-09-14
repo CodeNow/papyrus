@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 ## Big Poppa Utility Functions
 
 source $PAPYRUS_ROOT/.helpers.d/colors.sh
@@ -11,18 +13,18 @@ function big_poppa # environment organization/user id/githubid/name value
   value=$4
 
   # Display Query
-  if [ $field == "all" ]; then
+  if [[ $field == "all" ]]; then
     echo "Searching for all ${cyan}${entity}s${reset} in ${cyan}${environment}${reset}"
   else
     echo "Searching for ${cyan}${entity}${reset} where ${cyan}${field}${reset} is ${cyan}${value}${reset} in ${environment}${reset}"
   fi
 
   # If querying by name
-  if [ $field == "name" ]; then
+  if [[ $field == "name" ]]; then
     value=$(echo $value | awk '{print tolower($0)}')
     field="lowerName"
   fi
-  if [ $field == "lowerName" ] && [ $entity == "user" ]; then
+  if [[ $field == "lowerName" ]] && [[ $entity == "user" ]]; then
     value=$(github::get_by_username $value | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
     field="githubId"
   fi
@@ -31,9 +33,9 @@ function big_poppa # environment organization/user id/githubid/name value
   host="${environment}-app-services"
   url="0.0.0.0:7788/${entity}"
 
-  if [ $field == "all" ]; then
+  if [[ $field == "all" ]]; then
     url="${url}" # Do nothing
-  elif [ $field == "id" ]; then
+  elif [[ $field == "id" ]]; then
     url="${url}/${value}/"
   else
     url="${url}/?${field}=${value}"
