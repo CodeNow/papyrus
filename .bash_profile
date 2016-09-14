@@ -41,8 +41,8 @@ export ENVS='delta gamma epsilon stage'
 # remove `:` from COMP_WORDBREAKS to allow auto complete for ::
 export COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
 
+# tool aliases
 alias json="python -m json.tool"
-# alias json="jq"
 
 # Imports
 source $PAPYRUS_ROOT/.helpers.d/github.sh
