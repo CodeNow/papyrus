@@ -39,7 +39,7 @@ function big_poppa # environment organization/user id/githubid/name value
     url="${url}/?${field}=${value}"
   fi
 
-  ssh $host curl -sS $url | python -m json.tool
+  ssh $host curl -sS $url | python -m json.tool | pygmentize -l javascript
 }
 
 _bp_autocompletion()

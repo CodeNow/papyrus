@@ -17,6 +17,12 @@ function deploy # <env> <app> <tag> [...extra]
   if [[ "${repo}" = "web" ]]; then
     repo_folder="${RUN_ROOT}/runnable-angular"
   fi
+  if [[ "${repo}" = "api-core" ]]; then
+    repo_folder="${RUN_ROOT}/api"
+  fi
+  if [[ "${repo}" = "api-core" ]]; then
+    repo_folder="${RUN_ROOT}/api"
+  fi
 
   if [[ "${tag}" = "" ]]; then
     echo "no tag passed, looking for latest commit"
@@ -26,7 +32,12 @@ function deploy # <env> <app> <tag> [...extra]
   fi
 
   echo ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
-  ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
+  if [[ $(which noti) == "" ]]; then
+    (cd $ANSIBLE_ROOT && ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}")
+  else
+    (cd $ANSIBLE_ROOT && noti ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}")
+  fi
+
 }
 
 _deploy()
