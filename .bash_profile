@@ -42,7 +42,9 @@ export ENVS='delta gamma epsilon stage'
 export COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
 
 # tool aliases
-alias json="python -m json.tool"
+if ! type json > /dev/null; then
+  alias json="python -m json.tool"
+fi
 
 # Imports
 source $PAPYRUS_ROOT/.helpers.d/github.sh
