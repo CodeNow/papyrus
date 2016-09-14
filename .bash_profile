@@ -41,9 +41,9 @@ export ENVS='delta gamma epsilon stage'
 # remove `:` from COMP_WORDBREAKS to allow auto complete for ::
 export COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
 
-# tool aliases
-if ! type json > /dev/null; then
-  alias json="python -m json.tool"
+# tool overrides (must only be used for output)
+if ! type papyrus::display_json > /dev/null; then
+  alias papyrus::display_json="python -m json.tool"
 fi
 
 # Imports

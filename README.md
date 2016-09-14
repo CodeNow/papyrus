@@ -20,15 +20,20 @@ big_poppa gamma user name thejsj
 big_poppa gamma user all # Find all users in gamma
 ```
 
-## Tool Aliases
+## Tool Overrides
 
-This script will alias `json` to use `python -m json.tool` by default if not already set.
+Only use tool overrides when viewing or manipulating final outputs. Overriding functions that
+manipulate data and pass to other functions is forbidden.
+
+#### `display_json`
+
+This script will alias `papyrus::display_json` to use `python -m json.tool` by default.
 If you would like to use another tool, you can set it in your .bash_profile before sourcing this repo.
 
 Example:
 
 ```
 # ~/.bash_profile or ~/.zshrc
-alias json="jq"
+alias papyrus::display_json="jq"
 source $RUN_ROOT/papyrus/.bash_profile
 ```
