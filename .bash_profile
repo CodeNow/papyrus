@@ -41,6 +41,11 @@ export ENVS='delta gamma epsilon stage'
 # remove `:` from COMP_WORDBREAKS to allow auto complete for ::
 export COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
 
+# tool overrides (must only be used for output)
+if ! type papyrus::display_json > /dev/null; then
+  alias papyrus::display_json="python -m json.tool"
+fi
+
 # Imports
 source $PAPYRUS_ROOT/.helpers.d/github.sh
 source $PAPYRUS_ROOT/.helpers.d/big-poppa.sh

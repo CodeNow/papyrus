@@ -1,3 +1,5 @@
+#!/bin/bash
+#
 ## Big Poppa Utility Functions
 
 source $PAPYRUS_ROOT/.helpers.d/colors.sh
@@ -11,18 +13,18 @@ function big_poppa # environment organization/user id/githubid/name value
   value=$4
 
   # Display Query
-  if [ $field == "all" ]; then
+  if [[ $field == "all" ]]; then
     echo "Searching for all ${cyan}${entity}s${reset} in ${cyan}${environment}${reset}"
   else
     echo "Searching for ${cyan}${entity}${reset} where ${cyan}${field}${reset} is ${cyan}${value}${reset} in ${environment}${reset}"
   fi
 
   # If querying by name
-  if [ $field == "name" ]; then
+  if [[ $field == "name" ]]; then
     value=$(echo $value | awk '{print tolower($0)}')
     field="lowerName"
   fi
-  if [ $field == "lowerName" ] && [ $entity == "user" ]; then
+  if [[ $field == "lowerName" ]] && [[ $entity == "user" ]]; then
     value=$(github::get_by_username $value | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
     field="githubId"
   fi
@@ -31,15 +33,15 @@ function big_poppa # environment organization/user id/githubid/name value
   host="${environment}-app-services"
   url="0.0.0.0:7788/${entity}"
 
-  if [ $field == "all" ]; then
+  if [[ $field == "all" ]]; then
     url="${url}" # Do nothing
-  elif [ $field == "id" ]; then
+  elif [[ $field == "id" ]]; then
     url="${url}/${value}/"
   else
     url="${url}/?${field}=${value}"
   fi
 
-  ssh $host curl -sS $url | python -m json.tool
+  ssh $host curl -sS $url | papyrus::display_json
 }
 
 _bp_autocompletion()
@@ -70,32 +72,32 @@ complete -F _bp_autocompletion big_poppa
 # Get a Big Poppa org by its id
 function bp::org_get_by_id
 {
-  ssh delta-app-services curl 0.0.0.0:7788/organization/$1 | python -m json.tool
+  ssh delta-app-services curl -sS "0.0.0.0:7788/organization/$1" | papyrus::display_json
 }
 
 # Get a Big Poppa user by its id
 function bp::user_get_by_id
 {
-  ssh delta-app-services curl 0.0.0.0:7788/user/$1 | python -m json.tool
+  ssh delta-app-services curl -sS "0.0.0.0:7788/user/$1" | papyrus::display_json
 }
 
 # Get a Big Poppa organization by its Github id
 function bp::org_get_by_github_id
 {
-  ssh delta-app-services curl 0.0.0.0:7788/organization/?githubId=$1 | python -m json.tool
+  ssh delta-app-services curl -sS "0.0.0.0:7788/organization/?githubId=$1" | papyrus::display_json
 }
 
 # Get a Big Poppa user by its Github id
 function bp::user_get_by_github_id
 {
-  ssh delta-app-services curl 0.0.0.0:7788/user/?githubId=$1 | python -m json.tool
+  ssh delta-app-services curl -sS "0.0.0.0:7788/user/?githubId=$1" | papyrus::display_json
 }
 
 # Get a Big Poppa organization by its Github login
 function bp::org_get_by_name
 {
   lower_name=$(echo $1 | awk '{print tolower($0)}')
-  ssh delta-app-services curl 0.0.0.0:7788/organization/?lowerName=$lower_name | python -m json.tool
+  ssh delta-app-services curl -sS "0.0.0.0:7788/organization/?lowerName=$lower_name" | papyrus::display_json
 }
 
 # Get a Big Poppa user by its Github login
@@ -104,5 +106,5 @@ function bp::user_get_by_name
   lower_name=$(echo $1 | awk '{print tolower($0)}')
   # BP has no knowledge of Github login, so we have to query this from GH
   github_id=$(github_get_by_username $lower_name | python -c 'import sys, json; print json.load(sys.stdin)["id"]')
-  ssh delta-app-services curl 0.0.0.0:7788/user/?githubId=$github_id | python -m json.tool
+  ssh delta-app-services curl -sS "0.0.0.0:7788/user/?githubId=$github_id" | papyrus::display_json
 }
