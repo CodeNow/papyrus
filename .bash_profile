@@ -42,7 +42,7 @@ export ENVS='delta gamma epsilon stage'
 export COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
 
 # tool overrides (must only be used for output)
-if ! type papyrus::display_json > /dev/null; then
+if ! type papyrus::display_json &>/dev/null; then
   alias papyrus::display_json="python -m json.tool"
 fi
 
