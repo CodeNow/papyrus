@@ -34,7 +34,8 @@ Example:
 
 ```bash
 # ~/.bash_profile or ~/.zshrc
-function papyrus::display_json {
+function papyrus::display_json 
+{
   jq $@
 }
 
