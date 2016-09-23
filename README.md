@@ -13,7 +13,7 @@ Big-poppa querying straight from the command line.
 
 Examples:
 
-```
+```bash
 big_poppa gamma organization id 1 # Find org with BP id 1
 big_poppa delta user githubId 1981198 # Find user with github id 1981198
 big_poppa gamma user name thejsj
@@ -32,8 +32,12 @@ If you would like to use another tool, you can set it in your .bash_profile befo
 
 Example:
 
-```
+```bash
 # ~/.bash_profile or ~/.zshrc
-alias papyrus::display_json="jq"
+function papyrus::display_json 
+{
+  jq $@
+}
+
 source $RUN_ROOT/papyrus/.bash_profile
 ```

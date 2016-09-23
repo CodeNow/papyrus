@@ -41,7 +41,10 @@ function big_poppa # environment organization/user id/githubid/name value
     url="${url}/?${field}=${value}"
   fi
 
-  ssh $host curl -sS $url | papyrus::display_json
+  # Pop used params from arguments array
+  shift 4
+
+  ssh $host curl -sS $url | papyrus::display_json $@
 }
 
 _bp_autocompletion()
