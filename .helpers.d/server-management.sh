@@ -2,6 +2,32 @@
 #
 # Server Management
 
+function setup # <func> <func_args>
+{
+  local NAME=$1
+  kill $(cat $RUN_TMP/$NAME.pid) || echo "no prev session"
+  echo "running: $*"
+  $*
+  PID="$!"
+  echo $PID > $RUN_TMP/$NAME.pid
+}
+
+function setupSwarm # host
+{
+  export DOCKER_HOST=tcp://localhost:52375
+  ssh -NL 52375:localhost:2375 "$1" &
+}
+
+alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
+alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
+alias setupSwarmEpsilon='setup setupSwarm epsilon-dock-services'
+
+function setupSwarmStaging # host
+{
+  export DOCKER_HOST=tcp://swarm-staging-codenow.runnableapp.com:2375
+  export DOCKER_TLS_VERIFY=1
+}
+
 function setupRabbit # host
 {
   ssh -NL 8080:localhost:54320 "$1" &
@@ -22,6 +48,14 @@ alias setupConsulGamma='setup setupConsul "$(ssh gamma-consul-a hostname -i)" ga
 alias setupConsulDelta='setup setupConsul "$(ssh delta-consul-a hostname -i)" delta-consul-a'
 alias setupConsulEpsilon='setup setupConsul "$(ssh epsilon-consul-a hostname -i)" epsilon-consul-a'
 alias setupConsulStaging='setup setupConsul "$(ssh delta-staging-data hostname -i)" delta-staging-data'
+
+function setupMetabase
+{
+  echo ssh -NL 8989:localhost:4444 delta-app-services
+  ssh -NL 8989:localhost:4444 delta-app-services &
+}
+
+alias setupMetabaseDelta='setup setupMetabase'
 
 function dockCommand # <host> <command>
 {

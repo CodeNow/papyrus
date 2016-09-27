@@ -14,32 +14,6 @@ alias startDbs="unsetDocker; docker run -d -p 6379:6379 --name=redis redis:3.0;\
 alias stopDbs='unsetDocker; docker kill redis mongo rabbit; docker rm redis mongo rabbit'
 alias dbs='stopDbs || startDbs'
 
-function setup # <func> <func_args>
-{
-  local NAME=$1
-  kill $(cat $RUN_TMP/$NAME.pid) || echo "no prev session"
-  echo "running: $*"
-  $*
-  PID="$!"
-  echo $PID > $RUN_TMP/$NAME.pid
-}
-
-function setupSwarm # host
-{
-  export DOCKER_HOST=tcp://localhost:52375
-  ssh -NL 52375:localhost:2375 "$1" &
-}
-
-alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
-alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
-alias setupSwarmEpsilon='setup setupSwarm epsilon-dock-services'
-
-function setupSwarmStaging # host
-{
-  export DOCKER_HOST=tcp://swarm-staging-codenow.runnableapp.com:2375
-  export DOCKER_TLS_VERIFY=1
-}
-
 function swarmListOrg # orgId
 {
   echo docker info 2>&1| grep -B5 "org=$1"
