@@ -51,3 +51,17 @@ function swarmImageBuilder
   echo 'docker ps -a | grep image-build | cut -f 1 -d' ' | xargs docker rm'
   docker ps -a | grep image-build | cut -f 1 -d' ' | xargs docker rm
 }
+
+function swarm::get_container_host # <container_id>
+{
+  docker inspect -f '{{.Node.IP}}' "$1"
+}
+
+function docker::get_container_run_command # <container_id>
+{
+  local container_envs=`docker inspect -f '{{.Config.Env}}' "$1"`
+  local container_cmd=`docker inspect -f '{{.Config.Cmd}}' "$1"`
+  local container_image=`docker inspect -f '{{.Config.Image}}' "$1"`
+  # local container_ports=`docker inspect -f '{{.Config.Image}}' "$1"`
+  # local container_volumes=`docker inspect -f '{{.Config.Image}}' "$1"`
+}
