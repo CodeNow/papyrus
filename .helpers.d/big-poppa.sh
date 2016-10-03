@@ -49,28 +49,24 @@ function big_poppa # environment organization/user id/githubid/name value
 
 _bp_autocompletion()
 {
-  local cur prev opts
-  COMPREPLY=()
+  local cur environments entity_type query_parameter reply
   cur="${COMP_WORDS[COMP_CWORD]}"
-  prev="${COMP_WORDS[COMP_CWORD-1]}"
-  opts1="${ENVS}"
-  opts2="organization user"
-  opts3="id githubId name username all"
+
+  environments="${ENVS}"
+  entity_type="organization user"
+  query_parameter="id githubId name username all"
 
   if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
-    COMPREPLY=( $(compgen -W "${opts1}" -- ${cur}) )
-    return 0
+    reply=$environments
+  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+    reply=$entity_type
+  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
+    reply=$query_parameter
   fi
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
-    COMPREPLY=( $(compgen -W "${opts2}" -- ${cur}) )
-    return 0
-  fi
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
-    COMPREPLY=( $(compgen -W "${opts3}" -- ${cur}) )
-    return 0
-  fi
+  COMPREPLY=( $(compgen -W "${reply}" -- ${cur}) )
 }
 complete -F _bp_autocompletion big_poppa
+complete -F _bp_autocompletion bp
 
 # Get a Big Poppa org by its id
 function bp::org_get_by_id
