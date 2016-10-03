@@ -5,17 +5,23 @@
 # Get a github organization/user by its ID
 function github::get_by_id
 {
-	curl -sS "https://api.github.com/user/$1" | papyrus::display_json
+	local id=$1
+	shift 1
+	curl -sS "https://api.github.com/user/$id" | jq $@
 }
 
 # Get a github user by its login/username
 function github::get_by_username
 {
-	curl -sS "https://api.github.com/users/$1" | papyrus::display_json
+	local username=$1
+	shift 1
+	curl -sS "https://api.github.com/users/$username" | papyrus::display_json $@
 }
 
 # Get a github organization by its login/username
 function github::get_by_orgname
 {
-	curl -sS "https://api.github.com/orgs/$1" | papyrus::display_json
+	local orgname=$1
+	shift 1
+	curl -sS "https://api.github.com/orgs/$orgname" | papyrus::display_json $@
 }
