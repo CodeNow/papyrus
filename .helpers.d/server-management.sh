@@ -51,8 +51,8 @@ alias setupConsulStaging='setup setupConsul "$(ssh delta-staging-data hostname -
 
 function setupMetabase
 {
-  echo ssh -NL 8989:localhost:4444 delta-app-services
-  ssh -NL 8989:localhost:4444 delta-app-services &
+  echo ssh -NL 8989:localhost:4444 delta-metabase
+  ssh -NL 8989:localhost:4444 delta-metabase &
 }
 
 alias setupMetabaseDelta='setup setupMetabase'
