@@ -38,7 +38,7 @@ function util::pull_all_repos
   util::for_each_repo "git pull"
 }
 
-function util::get_git_stats_for_repo # [Date 2016-08-26]
+function util::get_git_stats_for_repo # [Date 2016-08-26] [year-month-day]
 {
   git log origin/master --numstat --since=$1 | awk '
   function printStats(author) {
@@ -70,35 +70,51 @@ function util::get_git_stats_for_repo # [Date 2016-08-26]
      printStats("total")
   }'
 }
+# format: [Name]:[alias1,alias2] [Name]:[alias1,alias2]
+# Name is what shows up in output
+# alias are names that show up in git history
+# each group must be seperated by atleast one space for parsing to work
+export RUNAWORKERS="
+  Anand:anand
+  Anton:anton,podviaznikov
+  Christopher:und1sk0,Chris
+  Henry:henry
+  Jorge:thejsj,Jorge
+  Kahn:Myztiq,Kahn
+  Ken:Ken,kolofsen
+  Nathan:Nathan219,Nathan,nate
+  Praful:praful
+  Sohail:tosih,Sohail
+  Sundip:sundip
+  Taylor:taylor
+  Tony:runnabro,tony
+  Yash:ykumar,yash
+  total:total
+"
 
-function util::biggest_loser # [Date 2016-08-26]
+function util::_biggest # <date> <ITEM>
 {
+  ITEM="$2"
   util::for_each_repo "util::get_git_stats_for_repo $1" > /tmp/loserCache
-  function getDeletesForName # [query]
-  {
-    cat /tmp/loserCache | grep del | grep -i "$1" | cut -d' ' -f 4 | paste -sd+ - | bc
-  }
 
   echo "" > /tmp/loserResults
-  echo Anand `getDeletesForName "anand"` >> /tmp/loserResults
-  echo Anton `getDeletesForName "anton\|podviaznikov"` >> /tmp/loserResults
-  echo Henry `getDeletesForName "henry"` >> /tmp/loserResults
-  echo Ken `getDeletesForName "Ken\|kolofsen"` >> /tmp/loserResults
-  echo Kahn `getDeletesForName "Myztiq\|Kahn"` >> /tmp/loserResults
-  echo Nathan `getDeletesForName "Nathan219\|Nathan\|nate"` >> /tmp/loserResults
-  echo Praful `getDeletesForName "praful"` >> /tmp/loserResults
-  echo tony `getDeletesForName "runnabro\|tony"` >> /tmp/loserResults
-  echo sundip `getDeletesForName "sundip"` >> /tmp/loserResults
-  echo taylor `getDeletesForName "taylor"` >> /tmp/loserResults
-  echo Jorge `getDeletesForName "thejsj\|Jorge"` >> /tmp/loserResults
-  echo Sohail `getDeletesForName "tosih\|Sohail"` >> /tmp/loserResults
-  echo Christopher `getDeletesForName "und1sk0\|Chris"` >> /tmp/loserResults
-  echo Yash `getDeletesForName "ykumar\|yash"` >> /tmp/loserResults
-  echo total `getDeletesForName "total"` >> /tmp/loserResults
-
-  # cleanup private functions
-  unset getDeletesForName
+  for worker in $RUNAWORKERS; do
+    NAME="${worker%%:*}"
+    ALIAS_CSV="${worker##*:}"
+    ALIAS_PIPED="${ALIAS_CSV//,/\\|}"
+    echo "${NAME}" `cat /tmp/loserCache | grep del | grep -i "$ALIAS_PIPED" | cut -d' ' -f "$ITEM" | paste -sd+ - | bc` >> /tmp/loserResults
+  done
 
   # sort list and print
   cat /tmp/loserResults | sort -n -k 2
+}
+
+function util::biggest_loser # [Date 2016-08-26]
+{
+  util::_biggest "$1" 4
+}
+
+function util::biggest_gain # [Date 2016-08-26]
+{
+  util::_biggest "$1" 6
 }
