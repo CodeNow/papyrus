@@ -2,21 +2,49 @@
 #
 # Ansible
 
+# converts names like web to runnable-angular
+function getRepoFromName # <repo_name>
+{
+  local repo="$1"
+  if [[ "${repo}" = "web" ]]; then
+    repo="runnable-angular"
+  fi
+
+  if [[ "${repo}" = "shiva" ]]; then
+    repo="astral"
+  fi
+
+  if [[ "${repo}" = "swarm-cloudwatch-reporter" ]]; then
+    repo="furry-cactus"
+  fi
+  
+  if [[ "${repo}" = "api-core" ]]; then
+    repo="api"
+  fi
+
+  if [[ "${repo}" = "socket-server" ]]; then
+    repo="api"
+  fi
+  
+  if [[ "${repo}" = "workers" ]]; then
+    repo="api"
+  fi
+  
+  echo $repo
+}
+
 # deploy passed tag
 # if no tag passed use latest tag
 function deploy # <env> <app> <tag> [...extra]
 {
-  local tenv="${1}-hosts"
+  local target_env="${1}-hosts"
   local repo="${2}"
   local tag="${3}"
 
-  local deployFile="${ANSIBLE_ROOT}/${repo}.yml"
-  local repo_folder="${RUN_ROOT}/${repo}"
+  local deploy_file="${ANSIBLE_ROOT}/${repo}.yml"
+  local repo_name=`getRepoFromName ${repo}`
+  local repo_folder="${RUN_ROOT}/${repo_name}"
   shift 2
-
-  if [[ "${repo}" = "web" ]]; then
-    repo_folder="${RUN_ROOT}/runnable-angular"
-  fi
 
   if [[ "${tag}" = "" ]]; then
     echo "no tag passed, looking for latest commit"
@@ -25,8 +53,8 @@ function deploy # <env> <app> <tag> [...extra]
     shift 1
   fi
 
-  echo ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
-  ansible-playbook -i "${ANSIBLE_ROOT}/${tenv}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deployFile}" -t deploy "${@}"
+  echo ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" -t deploy "${@}"
+  ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" -t deploy "${@}"
 }
 
 _deploy()
@@ -43,15 +71,19 @@ _deploy()
   fi
 
   local repos=`ls -d ${RUN_ROOT}/*/ | sed -e "s%${RUN_ROOT}/%%g" -e "s%/%%g"`
+  # add weird repos
+  repos="$repos shiva web swarm-cloudwatch-reporter"
+
   if [[ "${repos}" == *"${prev}"* ]]; then
-    local branches=$(git --git-dir="$RUN_ROOT/$prev/.git" for-each-ref --format='%(refname:short)' refs/heads)
+    local repo_name=`getRepoFromName "${prev}"`
+    local branches=$(git --git-dir="$RUN_ROOT/$repo_name/.git" for-each-ref --format='%(refname:short)' refs/heads)
     COMPREPLY=( $(compgen -W "${branches}" -- ${cur}) )
     return 0
   fi
 }
 complete -F _deploy deploy
 
-for tenv in $ENVS; do
-  alias ${tenv}Deploy="deploy $tenv"
-  complete -F _deploy ${tenv}Deploy
+for target_env in $ENVS; do
+  alias ${target_env}Deploy="deploy $target_env"
+  complete -F _deploy ${target_env}Deploy
 done
