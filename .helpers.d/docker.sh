@@ -17,8 +17,14 @@ alias dbs='stopDbs || startDbs'
 
 function swarmListOrg # orgId
 {
-  echo docker info 2>&1| grep -B5 "org=$1"
-  docker info 2>&1| grep -B5 "org=$1"
+  echo docker info 2>&1| grep -B6 "org=$1"
+  docker info 2>&1| grep -B6 "org=$1"
+}
+
+function swarmListOrgMem # orgId
+{
+  echo docker info 2>&1| grep -B6 "org=$1" | grep Mem
+  docker info 2>&1| grep -B6 "org=$1" | grep Mem
 }
 
 function swarmImageBuilder
