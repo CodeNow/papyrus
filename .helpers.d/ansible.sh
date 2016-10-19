@@ -17,6 +17,19 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "swarm-cloudwatch-reporter" ]]; then
     repo="furry-cactus"
   fi
+  
+  if [[ "${repo}" = "api-core" ]]; then
+    repo="api"
+  fi
+
+  if [[ "${repo}" = "socket-server" ]]; then
+    repo="api"
+  fi
+  
+  if [[ "${repo}" = "workers" ]]; then
+    repo="api"
+  fi
+  
   echo $repo
 }
 
