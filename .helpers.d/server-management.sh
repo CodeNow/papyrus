@@ -12,7 +12,7 @@ function setup # <func> <func_args>
   echo $PID > $RUN_TMP/$NAME.pid
 }
 
-function tunnel # [local port] [remote host] [remote port]
+function tunnel # <local_port> <remote_host> <remote_port>
 {
   local localPort="$1"
   local remoteHost="$2"
@@ -22,7 +22,7 @@ function tunnel # [local port] [remote host] [remote port]
   ssh -NL $localPort:$remoteHostName:$remotePort $remoteHost &
 }
 
-function setupSwarm # host
+function setupSwarm # <host>
 {
   export DOCKER_HOST=tcp://localhost:52375
   tunnel 52375 "$1" 2375
@@ -31,12 +31,12 @@ function setupSwarm # host
 alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
 alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
 
-function setupSwarmStaging # host
+function setupSwarmStaging
 {
   export DOCKER_HOST=tcp://swarm-staging-codenow.runnableapp.com:2375
 }
 
-function setupRabbit # host
+function setupRabbit # <host>
 {
   tunnel 8080 "$1" 54320
 }
@@ -44,7 +44,7 @@ function setupRabbit # host
 alias setupRabbitGamma='setup setupRabbit gamma-rabbit'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
-function setupConsul # host
+function setupConsul # <host>
 {
   tunnel 58500 "$1" 8500
 }
@@ -53,7 +53,7 @@ alias setupConsulGamma='setup setupConsul gamma-consul-a'
 alias setupConsulDelta='setup setupConsul delta-consul-a'
 alias setupConsulStaging='setup setupConsul delta-staging-data'
 
-function setupPrometheus # host
+function setupPrometheus # <host>
 {
   tunnel 9090 "$1" 9090
 }
@@ -113,10 +113,3 @@ function cleanGhosts
   echo MONGO_AUTH=api:${password} docks ghost -e delta | grep Created  | awk '{ print $2 }' | xargs docker rm
   MONGO_AUTH=api:${password} docks ghost -e delta | grep Created | awk '{ print $2 }' | xargs docker rm
 }
-# function rollDocks # new_ami target_env
-# {
-#   local ami="${1}"
-#   local target_env="${2}"
-#   echo docks aws list -e $target_env \| grep large \| grep -v $ami \| sort -u -n -k 4 \| awk '{print $6}' \| xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-#   docks aws list -e $target_env | grep large | grep -v $ami | sort -u -n -k 4 | awk '{print $6}' | xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-# }
