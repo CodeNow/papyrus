@@ -12,50 +12,62 @@ function setup # <func> <func_args>
   echo $PID > $RUN_TMP/$NAME.pid
 }
 
-function setupSwarm # host
+function tunnel # <local_port> <remote_host> <remote_port>
+{
+  local localPort="$1"
+  local remoteHost="$2"
+  local remotePort="$3"
+  local remoteHostName=$(ssh $remoteHost hostname -i)
+  echo ssh -NL $localPort:$remoteHostName:$remotePort $remoteHost
+  ssh -NL $localPort:$remoteHostName:$remotePort $remoteHost &
+}
+
+function setupSwarm # <host>
 {
   export DOCKER_HOST=tcp://localhost:52375
-  ssh -NL 52375:localhost:2375 "$1" &
+  tunnel 52375 "$1" 2375
 }
 
 alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
 alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
-alias setupSwarmEpsilon='setup setupSwarm epsilon-dock-services'
 
-function setupSwarmStaging # host
+function setupSwarmStaging
 {
   export DOCKER_HOST=tcp://swarm-staging-codenow.runnableapp.com:2375
-  export DOCKER_TLS_VERIFY=1
 }
 
-function setupRabbit # host
+function setupRabbit # <host>
 {
-  ssh -NL 8080:localhost:54320 "$1" &
+  tunnel 8080 "$1" 54320
 }
 
 alias setupRabbitGamma='setup setupRabbit gamma-rabbit'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
-alias setupRabbitEpsilon='setup setupRabbit epsilon-rabbit'
-alias setupRabbitStaging='setup setupRabbit delta-staging-data'
 
-function setupConsul # <ip> <host>
+function setupConsul # <host>
 {
-  echo tunneling ssh -NL 58500:"$1":8500 "$2"
-  ssh -NL 58500:"$1":8500 "$2" &
+  tunnel 58500 "$1" 8500
 }
 
-alias setupConsulGamma='setup setupConsul "$(ssh gamma-consul-a hostname -i)" gamma-consul-a'
-alias setupConsulDelta='setup setupConsul "$(ssh delta-consul-a hostname -i)" delta-consul-a'
-alias setupConsulEpsilon='setup setupConsul "$(ssh epsilon-consul-a hostname -i)" epsilon-consul-a'
-alias setupConsulStaging='setup setupConsul "$(ssh delta-staging-data hostname -i)" delta-staging-data'
+alias setupConsulGamma='setup setupConsul gamma-consul-a'
+alias setupConsulDelta='setup setupConsul delta-consul-a'
+alias setupConsulStaging='setup setupConsul delta-staging-data'
 
-function setupMetabase
+function setupPrometheus # <host>
 {
-  echo ssh -NL 8989:localhost:4444 delta-metabase
-  ssh -NL 8989:localhost:4444 delta-metabase &
+  tunnel 9090 "$1" 9090
 }
 
-alias setupMetabaseDelta='setup setupMetabase'
+
+function setupPrometheusAlert # <ip> <host>
+{
+  tunnel 9093 "$1" 9093
+}
+
+alias setupPromGamma='setup setupPrometheus gamma-dock-services; setup setupPrometheusAlert gamma-dock-services'
+alias setupPromDelta='setup setupPrometheus delta-prometheus; setup setupPrometheusAlert delta-prometheus'
+
+alias setupMetabase='setup tunnel 8989 delta-metabase 4444'
 
 function dockCommand # <host> <command>
 {
@@ -101,10 +113,3 @@ function cleanGhosts
   echo MONGO_AUTH=api:${password} docks ghost -e delta | grep Created  | awk '{ print $2 }' | xargs docker rm
   MONGO_AUTH=api:${password} docks ghost -e delta | grep Created | awk '{ print $2 }' | xargs docker rm
 }
-# function rollDocks # new_ami target_env
-# {
-#   local ami="${1}"
-#   local target_env="${2}"
-#   echo docks aws list -e $target_env \| grep large \| grep -v $ami \| sort -u -n -k 4 \| awk '{print $6}' \| xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-#   docks aws list -e $target_env | grep large | grep -v $ami | sort -u -n -k 4 | awk '{print $6}' | xargs -I % bash -c "echo y|docks unhealthy % -e $target_env"
-# }
