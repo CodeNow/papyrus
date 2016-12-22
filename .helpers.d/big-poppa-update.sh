@@ -1,16 +1,18 @@
 #!/bin/bash
 #
-## Big Poppa Utility Functions
+## Big Poppa Update Functions
 
 source $PAPYRUS_ROOT/.helpers.d/colors.sh
 
-function big_poppa # environment organization/user id/githubid/name value
+function update_big_poppa # environment organization/user id/githubid/name value
 {
   local environment entity field value host url
   local environment=$1
   entity=$2
   field=$3
   value=$4
+  update_field=$5
+  update_value=$6
 
   # Display Query
   if [[ $field == "all" ]]; then
@@ -33,28 +35,34 @@ function big_poppa # environment organization/user id/githubid/name value
   host="${environment}-app-services"
   url="0.0.0.0:7788/${entity}"
 
-  if [[ $field == "all" ]]; then
-    url="${url}" # Do nothing
-  elif [[ $field == "id" ]]; then
+  if [[ $field == "id" ]]; then
     url="${url}/${value}/"
   else
-    url="${url}/?${field}=${value}"
+    echo "Only parameter supported for updates is 'id'"
+    return false
   fi
 
-  # Pop used params from arguments array
-  shift 4
+  if [[ $update_value == "true" ]] || [[ $update_value == "false" ]]; then
+    update_value=$(echo $update_value | sed 's/.*/\u&/')
+  else
+    update_value="'$update_value'"
+  fi
 
-  ssh $host curl -sS $url | papyrus::display_json $@
+  json=$(python -c "import json; print json.dumps({ '$update_field': $update_value })")
+  echo "Updates: $json"
+
+  ssh $host "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url" | jq
 }
 
-_bp_autocompletion()
+_bp_update_autocompletion()
 {
   local cur environments entity_type query_parameter reply
   cur="${COMP_WORDS[COMP_CWORD]}"
 
   environments="${ENVS}"
   entity_type="organization user"
-  query_parameter="id githubId name username stripeCustomerId all"
+  query_parameter="id"
+  update_parameter="isActive firstDockCreated trialEnd activePeriodEnd stripeCustomerId stripeSubscriptionId metadata hasPaymentMethod"
 
   if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
     reply=$environments
@@ -62,8 +70,9 @@ _bp_autocompletion()
     reply=$entity_type
   elif [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
     reply=$query_parameter
+  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 5 ]] ; then
+    reply=$update_parameter
   fi
   COMPREPLY=( $(compgen -W "${reply}" -- ${cur}) )
 }
-complete -F _bp_autocompletion big_poppa
-
+complete -F _bp_update_autocompletion update_big_poppa
