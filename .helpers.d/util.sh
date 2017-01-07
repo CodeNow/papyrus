@@ -75,20 +75,20 @@ function util::get_git_stats_for_repo # [Date 2016-08-26] [year-month-day]
 # alias are names that show up in git history
 # each group must be seperated by atleast one space for parsing to work
 export RUNAWORKERS="
-  Anand:anand
-  Anton:anton,podviaznikov
-  Christopher:und1sk0,Chris
-  Henry:henry
-  Jorge:thejsj,Jorge
-  Kahn:Myztiq,Kahn
-  Ken:Ken,kolofsen
-  Nathan:Nathan219,Nathan,nate
-  Praful:praful
-  Sohail:tosih,Sohail
-  Sundip:sundip
-  Taylor:taylor
-  Tony:runnabro,tony
-  Yash:ykumar,yash
+  Anand:anand,Anand
+  Anton:anton,podviaznikov,Anton
+  Damien:damien,Damien,damien,damienrunnable
+  Henry:henrymollman,Henry
+  Jorge:thejsj,Jorge,jorge
+  Kahn:Myztiq,Kahn,kahn
+  Ken:Ken,kolofsen,ken
+  Nathan:Nathan219,Nathan,nate,nathan
+  Praful:praful,Praful
+  Sohail:tosih,Sohail,sohail
+  Sundip:sundip,Sundip
+  Taylor:taylor,Taylor
+  Tony:runnabro,tony,tli415,Tony
+  Yash:ykumar,yash,Yash
   total:total
 "
 
@@ -102,7 +102,7 @@ function util::_biggest # <date> <ITEM>
     NAME="${worker%%:*}"
     ALIAS_CSV="${worker##*:}"
     ALIAS_PIPED="${ALIAS_CSV//,/\\|}"
-    echo "${NAME}" `cat /tmp/loserCache | grep del | grep -i "$ALIAS_PIPED" | cut -d' ' -f "$ITEM" | paste -sd+ - | bc` >> /tmp/loserResults
+    echo "${NAME}" `cat /tmp/loserCache | grep del | grep "$ALIAS_PIPED" | cut -d' ' -f "$ITEM" | paste -sd+ - | bc` >> /tmp/loserResults
   done
 
   # sort list and print
