@@ -29,6 +29,14 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "workers" ]]; then
     repo="api"
   fi
+
+  if [[ "${repo}" = "cream-http" ]]; then
+    repo="cream"
+  fi
+
+  if [[ "${repo}" = "cream-worker" ]]; then
+    repo="cream"
+  fi
   
   echo $repo
 }
@@ -43,12 +51,11 @@ function deploy # <env> <app> <tag> [...extra]
 
   local deploy_file="${ANSIBLE_ROOT}/${repo}.yml"
   local repo_name=`getRepoFromName ${repo}`
-  local repo_folder="${RUN_ROOT}/${repo_name}"
   shift 2
 
   if [[ "${tag}" = "" ]]; then
     echo "no tag passed, looking for latest commit"
-    tag=`git -C "${repo_folder}" describe --abbrev=0 --tags master`
+    tag=`util::get_latest_tag ${repo_name}`
   else
     shift 1
   fi

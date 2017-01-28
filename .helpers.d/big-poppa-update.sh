@@ -42,13 +42,14 @@ function update_big_poppa # environment organization/user id/githubid/name value
     return false
   fi
 
-  if [[ $update_value == "true" ]] || [[ $update_value == "false" ]]; then
-    update_value=$(echo $update_value | sed 's/.*/\u&/')
+  if [[ $update_value == "true" ]] || [[ $update_value == "false" ]] || [[ $update_value == "True" ]] || [[ $update_value == "False" ]]; then
+    update_value=$update_value
   else
     update_value="'$update_value'"
   fi
 
-  json=$(python -c "import json; print json.dumps({ '$update_field': $update_value })")
+  json_string="{ '$update_field': $update_value }"
+  json=$(python -c "import json; print json.dumps($json_string)")
   echo "Updates: $json"
 
   ssh $host "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url" | jq
@@ -62,7 +63,7 @@ _bp_update_autocompletion()
   environments="${ENVS}"
   entity_type="organization user"
   query_parameter="id"
-  update_parameter="isActive firstDockCreated trialEnd activePeriodEnd stripeCustomerId stripeSubscriptionId metadata hasPaymentMethod"
+  update_parameter="isActive firstDockCreated trialEnd activePeriodEnd stripeCustomerId stripeSubscriptionId metadata hasPaymentMethod isPermanentlyBanned"
 
   if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
     reply=$environments
