@@ -7,7 +7,7 @@ source $PAPYRUS_ROOT/.helpers.d/colors.sh
 function update_big_poppa # environment organization/user id/githubid/name value
 {
   local environment entity field value host url
-  local environment=$1
+  environment=$1
   entity=$2
   field=$3
   value=$4
