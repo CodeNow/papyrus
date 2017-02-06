@@ -118,3 +118,9 @@ function util::biggest_gain # [Date 2016-08-26]
 {
   util::_biggest "$1" 6
 }
+
+function util::get_latest_tag
+{
+  local repo_folder="${RUN_ROOT}/${1}"
+  git -C "${repo_folder}" describe --abbrev=0 --tags master
+}
