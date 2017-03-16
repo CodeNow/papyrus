@@ -59,13 +59,18 @@ function setupPrometheus # <host>
 }
 
 
-function setupPrometheusAlert # <ip> <host>
+function setupPrometheusAlert # <host>
 {
   tunnel 9093 "$1" 9093
 }
 
-alias setupPromGamma='setup setupPrometheus gamma-dock-services; setup setupPrometheusAlert gamma-dock-services'
-alias setupPromDelta='setup setupPrometheus delta-prometheus; setup setupPrometheusAlert delta-prometheus'
+function setupGrafana # <host>
+{
+  tunnel 9089 "$1" 9089
+}
+
+alias setupPromGamma='setup setupPrometheus gamma-dock-services; setup setupPrometheusAlert gamma-dock-services; setup setupGrafana gamma-dock-services'
+alias setupPromDelta='setup setupPrometheus delta-prometheus; setup setupPrometheusAlert delta-prometheus; setup setupGrafana delta-prometheus'
 
 alias setupMetabase='setup tunnel 8989 delta-metabase 4444'
 
