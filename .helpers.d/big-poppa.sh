@@ -30,7 +30,11 @@ function big_poppa # environment organization/user id/githubid/name value
   fi
 
   # Build url
-  host="${environment}-app-services"
+  if [[ $environment == "delta" ]]; then
+    host="delta-app-services-2"
+  else
+    host="${environment}-app-services"
+  fi
   url="0.0.0.0:7788/${entity}"
 
   if [[ $field == "all" ]]; then
