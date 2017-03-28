@@ -33,7 +33,7 @@ function update_big_poppa # environment organization/user id/githubid/name value
 
   # Build url
   if [[ $environment == "delta" ]]; then
-    host="${environment}-app-services-2"
+    host="delta-app-services-2"
   else
     host="${environment}-app-services"
   fi
