@@ -41,7 +41,12 @@ function setupRabbit # <host>
   tunnel 8080 "$1" 54320
 }
 
-alias setupRabbitGamma='kubectl port-forward `kubectl get pods | grep rabbitmq | awk '{print $1}'` 8080:15672'
+function portForward # <appName> <ports>
+{
+  kubectl port-forward `kubectl get pods | grep $1 | awk '{print $1}'` $2
+}
+
+alias setupRabbitGamma='portForward rabbitmq 8080:15672'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
 function setupConsul # <host>
