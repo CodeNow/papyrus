@@ -41,7 +41,7 @@ function setupRabbit # <host>
   tunnel 8080 "$1" 54320
 }
 
-function portForward # <appName> <ports>
+function portForward # <service> <ports>
 {
   kubectl port-forward `kubectl get pods | grep $1 | awk '{print $1}'` $2
 }
