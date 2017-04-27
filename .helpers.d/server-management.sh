@@ -41,7 +41,7 @@ function setupRabbit # <host>
   tunnel 8080 "$1" 54320
 }
 
-alias setupRabbitGamma='setup setupRabbit gamma-rabbit'
+alias setupRabbitGamma='kubectl port-forward `kubectl get pods | grep rabbitmq | awk '{print $1}'` 8080:15672'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
 function setupConsul # <host>
