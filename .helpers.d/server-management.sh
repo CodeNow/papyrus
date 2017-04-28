@@ -28,7 +28,7 @@ function setupSwarm # <host>
   tunnel 52375 "$1" 2375
 }
 
-alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
+alias setupSwarmGamma='portForward swarm 52375:2375'
 alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
 
 function setupSwarmStaging
