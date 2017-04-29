@@ -48,7 +48,12 @@ function big_poppa # environment organization/user id/githubid/name value
   # Pop used params from arguments array
   shift 4
 
-  ssh $host curl -sS $url | papyrus::display_json $@
+  #TODO Replace with call once it is checked in
+  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ')
+
+  kubectl port-forward $pod 7788:7788 &
+  curl -sS $url | papyrus::display_json $@
+  #TODO Replace with session management
 }
 
 _bp_autocompletion()
