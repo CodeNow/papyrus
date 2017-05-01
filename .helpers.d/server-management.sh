@@ -24,7 +24,7 @@ function tunnel # <local_port> <remote_host> <remote_port>
 
 function portForward # <service_name> <local_port:remote_port>
 {
-  kubectl port-forward `kubectl get pods | grep $1 | awk '{print $1}'` $2
+  kubectl port-forward `kubectl get pods | grep $1 | awk '{print $1}'` $2 &>/dev/null &disown
 }
 
 function setupSwarm # <host>
@@ -35,7 +35,7 @@ function setupSwarm # <host>
 
 function portForwardSwarm
 {
-  portForward swarm 52375:2375 &>/dev/null &disown
+  portForward swarm 52375:2375
 }
 
 alias setupSwarmGamma='setup portForwardSwarm'
@@ -53,7 +53,7 @@ function setupRabbit # <host>
 
 function portForwardRabbit
 {
-  portForward rabbitmq 8080:15672 &>/dev/null &disown
+  portForward rabbitmq 8080:15672
 }
 
 alias setupRabbitGamma='setup portForwardRabbit'
