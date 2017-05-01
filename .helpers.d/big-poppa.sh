@@ -50,8 +50,8 @@ function big_poppa # environment organization/user id/githubid/name value
 
   #TODO Replace with call once it is checked in
   pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ')
-
   kubectl port-forward $pod 7788:7788 &
+  sleep 2
   curl -sS $url | papyrus::display_json $@
   #TODO Replace with session management
 }
