@@ -57,11 +57,8 @@ function update_big_poppa # environment organization/user id/githubid/name value
   echo "Updates: $json"
 
   #TODO Replace with call once it is checked in
-  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ')
-  kubectl port-forward $pod 7788:7788 &
-  sleep 2
-  echo $url
-  echo $json
+  portForward big-poppa-http 7788:7788 &
+  sleep 4
   bash -c "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url" | jq
   #TODO Replace with session management
 }
