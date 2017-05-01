@@ -22,13 +22,23 @@ function tunnel # <local_port> <remote_host> <remote_port>
   ssh -NL $localPort:$remoteHostName:$remotePort $remoteHost &
 }
 
+function portForward # <service_name> <local_port:remote_port>
+{
+  kubectl port-forward `kubectl get pods | grep $1 | awk '{print $1}'` $2 &>/dev/null &disown
+}
+
 function setupSwarm # <host>
 {
   export DOCKER_HOST=tcp://localhost:52375
   tunnel 52375 "$1" 2375
 }
 
-alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
+function portForwardSwarm
+{
+  portForward swarm 52375:2375
+}
+
+alias setupSwarmGamma='setup portForwardSwarm'
 alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
 
 function setupSwarmStaging
@@ -41,7 +51,12 @@ function setupRabbit # <host>
   tunnel 8080 "$1" 54320
 }
 
-alias setupRabbitGamma='setup setupRabbit gamma-rabbit'
+function portForwardRabbit
+{
+  portForward rabbitmq 8080:15672
+}
+
+alias setupRabbitGamma='setup portForwardRabbit'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
 function setupConsul # <host>
