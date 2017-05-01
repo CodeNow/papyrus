@@ -28,7 +28,7 @@ function setupSwarm # <host>
   tunnel 52375 "$1" 2375
 }
 
-alias setupSwarmGamma='setup setupSwarm gamma-dock-services'
+alias setupSwarmGamma='portForward swarm 52375:2375'
 alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
 
 function setupSwarmStaging
@@ -41,7 +41,12 @@ function setupRabbit # <host>
   tunnel 8080 "$1" 54320
 }
 
-alias setupRabbitGamma='setup setupRabbit gamma-rabbit'
+function portForward # <service> <ports>
+{
+  kubectl port-forward `kubectl get pods | grep $1 | awk '{print $1}'` $2
+}
+
+alias setupRabbitGamma='portForward rabbitmq 8080:15672'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
 function setupConsul # <host>
