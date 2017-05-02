@@ -56,11 +56,8 @@ function update_big_poppa # environment organization/user id/githubid/name value
   json=$(python -c "import json; print json.dumps($json_string)")
   echo "Updates: $json"
 
-  #TODO Replace with call once it is checked in
-  portForward big-poppa-http 7788:7788 &
-  sleep 4
-  bash -c "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url" | jq
-  #TODO Replace with session management
+  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ')
+  kubectl exec -it $pod -- bash -c "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url" | jq
 }
 
 _bp_update_autocompletion()
