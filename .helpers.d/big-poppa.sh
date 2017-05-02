@@ -48,8 +48,6 @@ function big_poppa # environment organization/user id/githubid/name value
   # Pop used params from arguments array
   shift 4
 
-  echo $url
-
   pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ')
   kubectl exec -it $pod -- bash -c "curl -sS $url" | papyrus::display_json $@
 }
