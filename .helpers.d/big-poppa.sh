@@ -29,6 +29,13 @@ function big_poppa # context organization/user id/githubid/name value
     field="githubId"
   fi
 
+  # Set context
+  if [[ $context == "delta" ]]; then
+    context="kubernetes.runnable.com"
+  elif [[ $context == "gamma" ]]; then
+    context="kubernetes.runnable-gamma.com"
+  fi
+
   # Build url
   url="0.0.0.0:7788/${entity}"
 
@@ -61,7 +68,7 @@ _bp_autocompletion()
   local cur contexts entity_type query_parameter reply
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  contexts="$(kubectl config get-contexts -o name)"
+  contexts="$(kubectl config get-contexts -o name) delta gamma"
   entity_type="organization user"
   query_parameter="id githubId name username stripeCustomerId all"
 
