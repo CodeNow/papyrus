@@ -45,6 +45,7 @@ function getRepoFromName # <repo_name>
 # if no tag passed use latest tag
 function deploy # <env> <app> <tag> [...extra]
 {
+  local env="${1}"
   local target_env="${1}-hosts"
   local repo="${2}"
   local tag="${3}"
@@ -53,7 +54,10 @@ function deploy # <env> <app> <tag> [...extra]
   local repo_name=`getRepoFromName ${repo}`
   shift 2
 
-  if [[ "${tag}" = "" ]]; then
+  if [[ "${tag}" = "" || "${tag}" = "latest" ]]; then
+    if [[ "${tag}" = "latest" ]]; then
+      shift 1
+    fi
     echo "no tag passed, looking for latest commit"
     tag=`util::get_latest_tag ${repo_name}`
   else
@@ -61,7 +65,30 @@ function deploy # <env> <app> <tag> [...extra]
   fi
 
   echo ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
+
+  if [[ "$env" = "delta" ]]; then
+    echo ensure we have latest
+
+    devops_branch=`git rev-parse --abbrev-ref HEAD`
+    if [[ "$devops_branch" != "master" ]]; then
+      echo ERROR: you can only deploy to prod on master NOT $devops_branch
+      return
+    fi
+    git pull
+  fi
+
   ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
+  setKubectlForEnv $env
+  echo -------------------
+  echo -------------------
+  echo -------------------
+  echo apply changes to k8
+  echo -------------------
+  echo -------------------
+  echo -------------------
+  echo
+  git ls-files -m | xargs -n1 echo kubectl apply -f
+  echo ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 }
 
 _deploy()
