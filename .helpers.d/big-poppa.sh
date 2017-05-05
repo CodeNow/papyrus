@@ -55,7 +55,7 @@ function big_poppa # context organization/user id/githubid/name value
   if [[ $context != $current_context ]]; then
     kubectl config use-context $context
   fi
-  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ')
+  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ' | head -1)
   output=$(kubectl exec -it $pod -- bash -c "curl -sS $url")
   if [[ $context != $current_context ]]; then
     kubectl config use-context $current_context
