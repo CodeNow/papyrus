@@ -17,7 +17,7 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "swarm-cloudwatch-reporter" ]]; then
     repo="furry-cactus"
   fi
-  
+
   if [[ "${repo}" = "api-core" ]]; then
     repo="api"
   fi
@@ -25,7 +25,7 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "socket-server" ]]; then
     repo="api"
   fi
-  
+
   if [[ "${repo}" = "workers" ]]; then
     repo="api"
   fi
@@ -37,7 +37,7 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "cream-worker" ]]; then
     repo="cream"
   fi
-  
+
   echo $repo
 }
 
@@ -60,8 +60,8 @@ function deploy # <env> <app> <tag> [...extra]
     shift 1
   fi
 
-  echo ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" -t deploy "${@}"
-  ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" -t deploy "${@}"
+  echo ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
+  ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
 }
 
 _deploy()

@@ -54,3 +54,4 @@ source $PAPYRUS_ROOT/.helpers.d/ansible.sh
 source $PAPYRUS_ROOT/.helpers.d/server-management.sh
 source $PAPYRUS_ROOT/.helpers.d/docker.sh
 source $PAPYRUS_ROOT/.helpers.d/util.sh
+source $PAPYRUS_ROOT/.helpers.d/kubernetes.sh
