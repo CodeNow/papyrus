@@ -4,10 +4,10 @@
 
 source $PAPYRUS_ROOT/.helpers.d/colors.sh
 
-function update_big_poppa # environment organization/user id/githubid/name value
+function update_big_poppa # context organization/user id/githubid/name value
 {
-  local environment entity field value host url
-  environment=$1
+  local context entity field value url
+  context=$1
   entity=$2
   field=$3
   value=$4
@@ -16,9 +16,9 @@ function update_big_poppa # environment organization/user id/githubid/name value
 
   # Display Query
   if [[ $field == "all" ]]; then
-    echo "Searching for all ${cyan}${entity}s${reset} in ${cyan}${environment}${reset}"
+    echo "Searching for all ${cyan}${entity}s${reset} in ${cyan}${context}${reset}"
   else
-    echo "Searching for ${cyan}${entity}${reset} where ${cyan}${field}${reset} is ${cyan}${value}${reset} in ${environment}${reset}"
+    echo "Searching for ${cyan}${entity}${reset} where ${cyan}${field}${reset} is ${cyan}${value}${reset} in ${context}${reset}"
   fi
 
   # If querying by name
@@ -31,12 +31,14 @@ function update_big_poppa # environment organization/user id/githubid/name value
     field="githubId"
   fi
 
-  # Build url
-  if [[ $environment == "delta" ]]; then
-    host="delta-app-services-2"
-  else
-    host="${environment}-app-services"
+  # Set context
+  if [[ $context == "delta" ]]; then
+    context="kubernetes.runnable.com"
+  elif [[ $context == "gamma" ]]; then
+    context="kubernetes.runnable-gamma.com"
   fi
+
+  # Build url
   url="0.0.0.0:7788/${entity}"
 
   if [[ $field == "id" ]]; then
@@ -56,21 +58,34 @@ function update_big_poppa # environment organization/user id/githubid/name value
   json=$(python -c "import json; print json.dumps($json_string)")
   echo "Updates: $json"
 
-  ssh $host "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url" | jq
+  current_context=$(kubectl config current-context)
+  if [[ $context != $current_context ]]; then
+    kubectl config use-context $context
+  fi
+  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ' | head -1)
+  output=$(kubectl exec -it $pod -- bash -c "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url")
+  if [[ $context != $current_context ]]; then
+    kubectl config use-context $current_context
+  fi
+
+  # Pop used params from arguments array
+  shift 6
+
+  echo $output | papyrus::display_json $@
 }
 
 _bp_update_autocompletion()
 {
-  local cur environments entity_type query_parameter reply
+  local cur contexts entity_type query_parameter reply
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  environments="${ENVS}"
+  contexts="$(kubectl config get-contexts -o name) delta gamma"
   entity_type="organization user"
   query_parameter="id"
   update_parameter="isActive firstDockCreated trialEnd activePeriodEnd stripeCustomerId stripeSubscriptionId metadata hasPaymentMethod isPermanentlyBanned"
 
   if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
-    reply=$environments
+    reply=$contexts
   elif [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
     reply=$entity_type
   elif [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
