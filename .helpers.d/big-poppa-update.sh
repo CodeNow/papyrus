@@ -31,6 +31,13 @@ function update_big_poppa # context organization/user id/githubid/name value
     field="githubId"
   fi
 
+  # Set context
+  if [[ $context == "delta" ]]; then
+    context="kubernetes.runnable.com"
+  elif [[ $context == "gamma" ]]; then
+    context="kubernetes.runnable-gamma.com"
+  fi
+
   # Build url
   url="0.0.0.0:7788/${entity}"
 
@@ -55,7 +62,7 @@ function update_big_poppa # context organization/user id/githubid/name value
   if [[ $context != $current_context ]]; then
     kubectl config use-context $context
   fi
-  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ')
+  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ' | head -1)
   output=$(kubectl exec -it $pod -- bash -c "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url")
   if [[ $context != $current_context ]]; then
     kubectl config use-context $current_context
@@ -72,7 +79,7 @@ _bp_update_autocompletion()
   local cur contexts entity_type query_parameter reply
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  contexts="$(kubectl config get-contexts -o name)"
+  contexts="$(kubectl config get-contexts -o name) delta gamma"
   entity_type="organization user"
   query_parameter="id"
   update_parameter="isActive firstDockCreated trialEnd activePeriodEnd stripeCustomerId stripeSubscriptionId metadata hasPaymentMethod isPermanentlyBanned"
