@@ -4,19 +4,19 @@
 
 source $PAPYRUS_ROOT/.helpers.d/colors.sh
 
-function big_poppa # context organization/user id/githubid/name value
+function big_poppa # env organization/user id/githubid/name value
 {
-  local context entity field value url
-  local context=$1
+  local env entity field value url
+  local env=$1
   entity=$2
   field=$3
   value=$4
 
   # Display Query
   if [[ $field == "all" ]]; then
-    echo "Searching for all ${cyan}${entity}s${reset} in ${cyan}${context}${reset}"
+    echo "Searching for all ${cyan}${entity}s${reset} in ${cyan}${env}${reset}"
   else
-    echo "Searching for ${cyan}${entity}${reset} where ${cyan}${field}${reset} is ${cyan}${value}${reset} in ${context}${reset}"
+    echo "Searching for ${cyan}${entity}${reset} where ${cyan}${field}${reset} is ${cyan}${value}${reset} in ${env}${reset}"
   fi
 
   # If querying by name
@@ -29,12 +29,8 @@ function big_poppa # context organization/user id/githubid/name value
     field="githubId"
   fi
 
-  # Set context
-  if [[ $context == "delta" ]]; then
-    context="kubernetes.runnable.com"
-  elif [[ $context == "gamma" ]]; then
-    context="kubernetes.runnable-gamma.com"
-  fi
+  # Set env
+  setKubectlForEnv $env
 
   # Build url
   url="0.0.0.0:7788/${entity}"
@@ -51,29 +47,22 @@ function big_poppa # context organization/user id/githubid/name value
   # Pop used params from arguments array
   shift 4
 
-  current_context=$(kubectl config current-context)
-  if [[ $context != $current_context ]]; then
-    kubectl config use-context $context
-  fi
-  pod=$(kubectl get pods | grep big-poppa-http | grep Running | cut -f 1 -d' ' | head -1)
+  pod=$(getFirstRunningPod big-poppa-http)
   output=$(kubectl exec -it $pod -- bash -c "curl -sS $url")
-  if [[ $context != $current_context ]]; then
-    kubectl config use-context $current_context
-  fi
   echo $output | papyrus::display_json $@
 }
 
 _bp_autocompletion()
 {
-  local cur contexts entity_type query_parameter reply
+  local cur env entity_type query_parameter reply
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  contexts="$(kubectl config get-contexts -o name) delta gamma"
+  env=$ENVS
   entity_type="organization user"
   query_parameter="id githubId name username stripeCustomerId all"
 
   if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
-    reply=$contexts
+    reply=$env
   elif [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
     reply=$entity_type
   elif [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
