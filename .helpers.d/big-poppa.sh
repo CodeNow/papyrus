@@ -30,7 +30,7 @@ function big_poppa # env organization/user id/githubid/name value
   fi
 
   # Set env
-  setKubectlForEnv $env
+  k8::set_context $env
 
   # Build url
   url="0.0.0.0:7788/${entity}"
@@ -47,7 +47,7 @@ function big_poppa # env organization/user id/githubid/name value
   # Pop used params from arguments array
   shift 4
 
-  pod=$(getFirstRunningPod big-poppa-http)
+  pod=$(k8::get_one_running_pod big-poppa-http)
   output=$(kubectl exec -it $pod -- bash -c "curl -sS $url")
   echo $output | papyrus::display_json $@
 }
@@ -57,7 +57,7 @@ _bp_autocompletion()
   local cur env entity_type query_parameter reply
   cur="${COMP_WORDS[COMP_CWORD]}"
 
-  env=$ENVS
+  env="$(kubectl config get-contexts -o name) $ENVS"
   entity_type="organization user"
   query_parameter="id githubId name username stripeCustomerId all"
 

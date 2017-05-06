@@ -2,19 +2,19 @@
 #
 # Kubernetes Management
 
-function setKubectlForEnv # <env>
+function k8::set_context # <env>
 {
   if [[ $1 == "delta" ]]; then
-    deltaKubectl
+    k8::set_context_delta
   elif [[ $1 == "gamma" ]]; then
-    gammaKubectl
+    k8::set_context_gamma
   else
     echo env:$1 is not valid exist!
     return
   fi
 }
 
-function gammaKubectl
+function k8::set_context_gamma
 {
   export KOPS_STATE_STORE=s3://runnable-gamma-kubernetes-config
   export CLUSTER_NAME=kubernetes.runnable-gamma.com
@@ -22,7 +22,7 @@ function gammaKubectl
   kubectl config use-context kubernetes.runnable-gamma.com
 }
 
-function deltaKubectl
+function k8::set_context_delta
 {
   export KOPS_STATE_STORE=s3://runnable-delta-kubernetes-config
   export CLUSTER_NAME=kubernetes.runnable.com
@@ -30,55 +30,55 @@ function deltaKubectl
   kubectl config use-context kubernetes.runnable.com
 }
 
-function listAllPods # <service_name>
+function k8::list_all_pods # <service_name>
 {
   kubectl get pods | grep -v NAME | grep "$1-[0-9]"
 }
 
-function getAllPods # <service_name>
+function k8::get_all_pods # <service_name>
 {
-  listAllPods $1 | cut -f 1 -d' '
+  k8::list_all_pods $1 | cut -f 1 -d' '
 }
 
-function getRunningPod # <service_name>
+function k8::get_running_pods # <service_name>
 {
-  listAllPods $1 | grep Running | cut -f 1 -d' '
+  k8::list_all_pods $1 | grep Running | cut -f 1 -d' '
 }
 
-function getFirstPod # <service_name>
+function k8::get_one_pod # <service_name>
 {
-  listAllPods $1 | head -n1 | cut -f 1 -d' '
+  k8::list_all_pods $1 | head -n1 | cut -f 1 -d' '
 }
 
-function getFirstRunningPod # <service_name>
+function k8::get_one_running_pod # <service_name>
 {
-  listAllPods $1 | grep Running | head -n1 | cut -f 1 -d' '
+  k8::list_all_pods $1 | grep Running | head -n1 | cut -f 1 -d' '
 }
 
-function deletePod
+function k8::delete_pods
 {
-  PODS=`getAllPods $1`
+  PODS=`k8::get_all_pods $1`
   echo kubectl delete pod $PODS
   kubectl delete pod $PODS
 }
 
-function logsPod # <service_name> [tail]
+function k8::pod_logs # <service_name> [tail]
 {
   TAIL=${2:-10}
-  echo getAllPods $1 \| xargs -n1 -P 100 kubectl logs -f --tail=$TAIL
-  getAllPods $1 | xargs -n1 -P 100 kubectl logs -f --tail=$TAIL
+  echo k8::get_all_pods $1 \| xargs -n1 -P 100 kubectl logs -f --tail=$TAIL
+  k8::get_all_pods $1 | xargs -n1 -P 100 kubectl logs -f --tail=$TAIL
 }
 
-function execPod # <service_name>
+function k8::exec_pod # <service_name>
 {
-  POD=`getFirstPod $1`
+  POD=`k8::get_one_pod $1`
   echo kubectl exec -it $POD bash
   kubectl exec -it $POD bash
 }
 
-function portForwardPod # <service_name> <local_port:remote_port>
+function k8::port_forward # <service_name> <local_port:remote_port>
 {
-  POD=`getFirstPod $1`
+  POD=`k8::get_one_pod $1`
   echo kubectl port-forward $POD $2 \&\>/dev/null \&disown
   kubectl port-forward $POD $2 &>/dev/null &disown
 }
@@ -96,12 +96,12 @@ _services()
     return 0
   fi
 }
-complete -F _services listAllPods
-complete -F _services getAllPods
-complete -F _services getRunningPod
-complete -F _services getFirstRunningPod
-complete -F _services getFirstPod
-complete -F _services deletePod
-complete -F _services logsPod
-complete -F _services execPod
-complete -F _services portForwardPod
+complete -F _services k8::list_all_pods
+complete -F _services k8::get_all_pods
+complete -F _services k8::get_running_pods
+complete -F _services k8::get_one_running_pod
+complete -F _services k8::get_one_pod
+complete -F _services k8::delete_pods
+complete -F _services k8::pod_logs
+complete -F _services k8::exec_pod
+complete -F _services k8::port_forward

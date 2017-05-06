@@ -29,11 +29,11 @@ function portForwardSwarm
   export DOCKER_HOST=tcp://localhost:52375
   export DOCKER_CERT_PATH=$RUN_ROOT/devops-scripts/ansible/roles/docker_client/files/certs/swarm-manager
   export DOCKER_TLS_VERIFY=1
-  portForwardPod swarm-manager 52375:2375
+  k8::port_forward swarm-manager 52375:2375
 }
 
-alias setupSwarmGamma='gammaKubectl && setup portForwardSwarm'
-alias setupSwarmDelta='deltaKubectl && setup portForwardSwarm'
+alias setupSwarmGamma='k8::set_context_gamma && setup portForwardSwarm'
+alias setupSwarmDelta='k8::set_context_delta && setup portForwardSwarm'
 
 function setupRabbit # <host>
 {
@@ -42,10 +42,10 @@ function setupRabbit # <host>
 
 function portForwardRabbit
 {
-  portForwardPod rabbitmq 8080:15672
+  k8::port_forward rabbitmq 8080:15672
 }
 
-alias setupRabbitGamma='gammaKubectl && setup portForwardRabbit'
+alias setupRabbitGamma='k8::set_context_gamma && setup portForwardRabbit'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
 function setupConsul # <host>
@@ -59,21 +59,21 @@ alias setupConsulStaging='setup setupConsul delta-staging-data'
 
 function setupPrometheus
 {
-  portForwardPod prometheus 9090:9090
+  k8::port_forward prometheus 9090:9090
 }
 
 function setupPrometheusAlert
 {
-  portForwardPod prometheus-alerts 9093:9093
+  k8::port_forward prometheus-alerts 9093:9093
 }
 
 function setupGrafana
 {
-  portForwardPod prometheus-alerts 9089:9089
+  k8::port_forward prometheus-alerts 9089:9089
 }
 
-alias setupPromGamma='gammaKubectl && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
-alias setupPromDelta='deltaKubectl && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
+alias setupPromGamma='k8::set_context_gamma && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
+alias setupPromDelta='k8::set_context_delta && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
 
 alias setupMetabase='setup tunnel 8989 delta-metabase 4444'
 

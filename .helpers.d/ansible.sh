@@ -78,7 +78,7 @@ function deploy # <env> <app> <tag> [...extra]
   fi
 
   ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
-  setKubectlForEnv $env
+  k8::set_context $env
   echo -------------------
   echo -------------------
   echo -------------------
