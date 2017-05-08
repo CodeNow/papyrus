@@ -19,7 +19,7 @@ function k8::set_context_gamma
   export KOPS_STATE_STORE=s3://runnable-gamma-kubernetes-config
   export CLUSTER_NAME=kubernetes.runnable-gamma.com
   export VPC_ID=vpc-c53464a0
-  kubectl config use-context kubernetes.runnable-gamma.com
+  kubectl config use-context $CLUSTER_NAME
 }
 
 function k8::set_context_delta
@@ -27,7 +27,7 @@ function k8::set_context_delta
   export KOPS_STATE_STORE=s3://runnable-delta-kubernetes-config
   export CLUSTER_NAME=kubernetes.runnable.com
   export VPC_ID=vpc-864c6be3
-  kubectl config use-context kubernetes.runnable.com
+  kubectl config use-context $CLUSTER_NAME
 }
 
 function k8::list_all_pods # <service_name>
