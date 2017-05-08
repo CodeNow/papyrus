@@ -50,6 +50,7 @@ function big_poppa # env organization/user id/githubid/name value
   pod=$(k8::get_one_running_pod big-poppa-http)
   output=$(kubectl exec -it $pod -- bash -c "curl -sS $url")
   echo $output | papyrus::display_json $@
+  k8::set_prev_context
 }
 
 _bp_autocompletion()

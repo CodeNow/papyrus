@@ -4,12 +4,31 @@
 
 function k8::set_context # <env>
 {
+  export PREV_ENV=`k8::get_current_env`
   if [[ $1 == "delta" ]]; then
     k8::set_context_delta
   elif [[ $1 == "gamma" ]]; then
     k8::set_context_gamma
   else
     echo env:$1 is not valid exist!
+    return
+  fi
+}
+
+function k8::set_prev_context
+{
+  k8::set_context $PREV_ENV
+}
+
+function k8::get_current_env
+{
+  current_env=`kubectl config current-context`
+  if [[ $current_env == "kubernetes.runnable.com" ]]; then
+    echo "delta"
+  elif [[ $current_env == "kubernetes.runnable-gamma.com" ]]; then
+    echo "gamma"
+  else
+    echo env:$current_env is not valid exist!
     return
   fi
 }
