@@ -62,11 +62,11 @@ _bp_autocompletion()
   entity_type="organization user"
   query_parameter="id githubId name username stripeCustomerId all"
 
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+  if [[ ${COMP_CWORD} -eq 1 ]] ; then
     reply=$env
-  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+  elif [[ ${COMP_CWORD} -eq 2 ]] ; then
     reply=$entity_type
-  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
+  elif [[ ${COMP_CWORD} -eq 3 ]] ; then
     reply=$query_parameter
   fi
   COMPREPLY=( $(compgen -W "${reply}" -- ${cur}) )

@@ -84,13 +84,13 @@ _bp_update_autocompletion()
   query_parameter="id"
   update_parameter="isActive firstDockCreated trialEnd activePeriodEnd stripeCustomerId stripeSubscriptionId metadata hasPaymentMethod isPermanentlyBanned"
 
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+  if [[ ${COMP_CWORD} -eq 1 ]] ; then
     reply=$contexts
-  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
+  elif [[ ${COMP_CWORD} -eq 2 ]] ; then
     reply=$entity_type
-  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 3 ]] ; then
+  elif [[ ${COMP_CWORD} -eq 3 ]] ; then
     reply=$query_parameter
-  elif [[ ${cur} == -* || ${COMP_CWORD} -eq 5 ]] ; then
+  elif [[ ${COMP_CWORD} -eq 5 ]] ; then
     reply=$update_parameter
   fi
   COMPREPLY=( $(compgen -W "${reply}" -- ${cur}) )

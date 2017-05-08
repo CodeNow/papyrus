@@ -93,7 +93,7 @@ _deploy()
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   opts=`ls $ANSIBLE_ROOT/*yml | sed -e "s%$ANSIBLE_ROOT/%%g" -e "s/.yml//g"`
 
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+  if [[ ${COMP_CWORD} -eq 1 ]] ; then
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     return 0
   fi

@@ -114,6 +114,7 @@ _services()
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
   fi
 }
+
 complete -F _services k8::list_all_pods
 complete -F _services k8::get_all_pods
 complete -F _services k8::get_running_pods
