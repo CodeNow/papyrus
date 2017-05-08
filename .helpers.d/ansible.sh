@@ -74,21 +74,15 @@ function deploy # <env> <app> <tag> [...extra]
       echo ERROR: you can only deploy to prod on master NOT $devops_branch
       return
     fi
+    echo pulling git repo
     git pull
   fi
 
   ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
   k8::set_context $env
-  echo -------------------
-  echo -------------------
-  echo -------------------
-  echo apply changes to k8
-  echo -------------------
-  echo -------------------
-  echo -------------------
+  echo now please apply the changes to k8:
   echo
   git ls-files -m | xargs -n1 echo kubectl apply -f
-  echo ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 }
 
 _deploy()
