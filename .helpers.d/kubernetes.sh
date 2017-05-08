@@ -110,9 +110,8 @@ _services()
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   opts=`ls $ANSIBLE_ROOT/*yml | sed -e "s%$ANSIBLE_ROOT/%%g" -e "s/.yml//g"`
 
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+  if [[ ${COMP_CWORD} -eq 1 ]] ; then
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-    return 0
   fi
 }
 complete -F _services k8::list_all_pods
@@ -124,3 +123,54 @@ complete -F _services k8::delete_pods
 complete -F _services k8::pod_logs
 complete -F _services k8::exec_pod
 complete -F _services k8::port_forward
+
+function k8::apply # <env> <service> [type] [file]
+{
+  env=$1
+  service=$2
+  type=${3:='*'}
+  file=${4:='*'}
+
+  k8::set_context $env
+  cd $ANSIBLE_ROOT/k8/$env/$service
+  ls ./$type/$file | xargs -n1 echo kubectl apply -f
+  ls ./$type/$file | xargs -n1 kubectl apply -f
+  k8::set_prev_context
+}
+
+_apply()
+{
+  local cur reply
+  COMPREPLY=()
+  cur="${COMP_WORDS[COMP_CWORD]}"
+
+  # env
+  if [[ ${COMP_CWORD} -eq 1 ]] ; then
+    reply=$ENVS
+  fi
+
+  # service
+  if [[ ${COMP_CWORD} -eq 2 ]] ; then
+    reply=`ls $ANSIBLE_ROOT/*yml | sed -e "s%$ANSIBLE_ROOT/%%g" -e "s/.yml//g"`
+  fi
+
+  # type
+  if [[ ${COMP_CWORD} -eq 3 ]] ; then
+    env="${COMP_WORDS[COMP_CWORD-2]}"
+    service="${COMP_WORDS[COMP_CWORD-1]}"
+
+    reply=`ls $ANSIBLE_ROOT/k8/$env/$service`
+  fi
+
+  if [[ ${COMP_CWORD} -eq 4 ]] ; then
+    env="${COMP_WORDS[COMP_CWORD-3]}"
+    service="${COMP_WORDS[COMP_CWORD-2]}"
+    type="${COMP_WORDS[COMP_CWORD-1]}"
+
+    reply=`ls $ANSIBLE_ROOT/k8/$env/$service/$type`
+  fi
+
+  COMPREPLY=( $(compgen -W "${reply}" -- ${cur}) )
+}
+
+complete -F _apply k8::apply
