@@ -2,6 +2,8 @@
 #
 # Server Management
 
+source $PAPYRUS_ROOT/.helpers.d/kubernetes.sh
+
 function setup # <func> <func_args>
 {
   local NAME=$1
@@ -22,29 +24,16 @@ function tunnel # <local_port> <remote_host> <remote_port>
   ssh -NL $localPort:$remoteHostName:$remotePort $remoteHost &
 }
 
-function portForward # <service_name> <local_port:remote_port>
-{
-  kubectl port-forward `kubectl get pods | grep $1 | awk '{print $1}'` $2 &>/dev/null &disown
-}
-
-function setupSwarm # <host>
-{
-  export DOCKER_HOST=tcp://localhost:52375
-  tunnel 52375 "$1" 2375
-}
-
 function portForwardSwarm
 {
-  portForward swarm 52375:2375
+  export DOCKER_HOST=tcp://localhost:52375
+  export DOCKER_CERT_PATH=$RUN_ROOT/devops-scripts/ansible/roles/docker_client/files/certs/swarm-manager
+  export DOCKER_TLS_VERIFY=1
+  k8::port_forward swarm-manager 52375:2375
 }
 
-alias setupSwarmGamma='setup portForwardSwarm'
-alias setupSwarmDelta='setup setupSwarm delta-swarm-manager'
-
-function setupSwarmStaging
-{
-  export DOCKER_HOST=tcp://swarm-staging-codenow.runnableapp.com:2375
-}
+alias setupSwarmGamma='k8::set_context_gamma && setup portForwardSwarm'
+alias setupSwarmDelta='k8::set_context_delta && setup portForwardSwarm'
 
 function setupRabbit # <host>
 {
@@ -53,10 +42,10 @@ function setupRabbit # <host>
 
 function portForwardRabbit
 {
-  portForward rabbitmq 8080:15672
+  k8::port_forward rabbitmq 8080:15672
 }
 
-alias setupRabbitGamma='setup portForwardRabbit'
+alias setupRabbitGamma='k8::set_context_gamma && setup portForwardRabbit'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
 function setupConsul # <host>
@@ -68,24 +57,23 @@ alias setupConsulGamma='setup setupConsul gamma-consul-a'
 alias setupConsulDelta='setup setupConsul delta-consul-a'
 alias setupConsulStaging='setup setupConsul delta-staging-data'
 
-function setupPrometheus # <host>
+function setupPrometheus
 {
-  tunnel 9090 "$1" 9090
+  k8::port_forward prometheus 9090:9090
 }
 
-
-function setupPrometheusAlert # <host>
+function setupPrometheusAlert
 {
-  tunnel 9093 "$1" 9093
+  k8::port_forward prometheus-alerts 9093:9093
 }
 
-function setupGrafana # <host>
+function setupGrafana
 {
-  tunnel 9089 "$1" 9089
+  k8::port_forward prometheus-alerts 9089:9089
 }
 
-alias setupPromGamma='setup setupPrometheus gamma-dock-services; setup setupPrometheusAlert gamma-dock-services; setup setupGrafana gamma-dock-services'
-alias setupPromDelta='setup setupPrometheus delta-prometheus; setup setupPrometheusAlert delta-prometheus; setup setupGrafana delta-prometheus'
+alias setupPromGamma='k8::set_context_gamma && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
+alias setupPromDelta='k8::set_context_delta && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
 
 alias setupMetabase='setup tunnel 8989 delta-metabase 4444'
 

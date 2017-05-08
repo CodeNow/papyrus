@@ -36,7 +36,7 @@ export RUN_TMP=$RUN_ROOT/.tmp
 
 export PATH="$PATH:./node_modules/.bin:/usr/local/sbin"
 # name of all our current active environments
-export ENVS='delta gamma epsilon stage'
+export ENVS='delta gamma'
 
 # remove `:` from COMP_WORDBREAKS to allow auto complete for ::
 export COMP_WORDBREAKS=${COMP_WORDBREAKS//:}
@@ -54,3 +54,4 @@ source $PAPYRUS_ROOT/.helpers.d/ansible.sh
 source $PAPYRUS_ROOT/.helpers.d/server-management.sh
 source $PAPYRUS_ROOT/.helpers.d/docker.sh
 source $PAPYRUS_ROOT/.helpers.d/util.sh
+source $PAPYRUS_ROOT/.helpers.d/kubernetes.sh

@@ -17,7 +17,7 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "swarm-cloudwatch-reporter" ]]; then
     repo="furry-cactus"
   fi
-  
+
   if [[ "${repo}" = "api-core" ]]; then
     repo="api"
   fi
@@ -25,7 +25,7 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "socket-server" ]]; then
     repo="api"
   fi
-  
+
   if [[ "${repo}" = "workers" ]]; then
     repo="api"
   fi
@@ -37,7 +37,7 @@ function getRepoFromName # <repo_name>
   if [[ "${repo}" = "cream-worker" ]]; then
     repo="cream"
   fi
-  
+
   echo $repo
 }
 
@@ -45,6 +45,7 @@ function getRepoFromName # <repo_name>
 # if no tag passed use latest tag
 function deploy # <env> <app> <tag> [...extra]
 {
+  local env="${1}"
   local target_env="${1}-hosts"
   local repo="${2}"
   local tag="${3}"
@@ -53,15 +54,35 @@ function deploy # <env> <app> <tag> [...extra]
   local repo_name=`getRepoFromName ${repo}`
   shift 2
 
-  if [[ "${tag}" = "" ]]; then
+  if [[ "${tag}" = "" || "${tag}" = "latest" ]]; then
+    if [[ "${tag}" = "latest" ]]; then
+      shift 1
+    fi
     echo "no tag passed, looking for latest commit"
     tag=`util::get_latest_tag ${repo_name}`
   else
     shift 1
   fi
 
-  echo ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" -t deploy "${@}"
-  ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" -t deploy "${@}"
+  echo ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
+
+  if [[ "$env" = "delta" ]]; then
+    echo ensure we have latest
+
+    devops_branch=`git rev-parse --abbrev-ref HEAD`
+    if [[ "$devops_branch" != "master" ]]; then
+      echo ERROR: you can only deploy to prod on master NOT $devops_branch
+      return
+    fi
+    echo pulling git repo
+    git pull
+  fi
+
+  ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
+  k8::set_context $env
+  echo now please apply the changes to k8:
+  echo
+  git ls-files -m | xargs -n1 echo kubectl apply -f
 }
 
 _deploy()
@@ -72,7 +93,7 @@ _deploy()
   prev="${COMP_WORDS[COMP_CWORD-1]}"
   opts=`ls $ANSIBLE_ROOT/*yml | sed -e "s%$ANSIBLE_ROOT/%%g" -e "s/.yml//g"`
 
-  if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+  if [[ ${COMP_CWORD} -eq 1 ]] ; then
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
     return 0
   fi
