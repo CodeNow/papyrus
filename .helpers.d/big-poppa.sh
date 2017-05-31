@@ -29,9 +29,6 @@ function big_poppa # env organization/user id/githubid/name value
     field="githubId"
   fi
 
-  # Set env
-  k8::set_context $env
-
   # Build url
   url="0.0.0.0:7788/${entity}"
 
@@ -47,10 +44,8 @@ function big_poppa # env organization/user id/githubid/name value
   # Pop used params from arguments array
   shift 4
 
-  pod=$(k8::get_one_running_pod big-poppa-http)
-  output=$(kubectl exec -it $pod -- bash -c "curl -sS $url")
+  output=$(k8::exec_command $env big-poppa-http "curl -sS $url")
   echo $output | papyrus::display_json $@
-  k8::set_prev_context
 }
 
 _bp_autocompletion()

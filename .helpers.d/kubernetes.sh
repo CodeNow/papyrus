@@ -33,12 +33,32 @@ function k8::get_current_env
   fi
 }
 
+function k8::env_to_context # <env>
+{
+  if [[ $1 == "delta" ]]; then
+    echo "kubernetes.runnable.com"
+  elif [[ $1 == "gamma" ]]; then
+    echo "kubernetes.runnable-gamma.com"
+  else
+    echo $1
+  fi
+}
+
+function  k8 # <env> ...
+{
+  local context=`k8::env_to_context $1`
+  shift
+  echo kubectl --context \"${context}\" \"$*\"
+  kubectl --context "${context}" $*
+}
+
+export -f k8
+
 function k8::set_context_gamma
 {
   export KOPS_STATE_STORE=s3://runnable-gamma-kubernetes-config
   export CLUSTER_NAME=kubernetes.runnable-gamma.com
   export VPC_ID=vpc-c53464a0
-  kubectl config use-context $CLUSTER_NAME
 }
 
 function k8::set_context_delta
@@ -46,60 +66,66 @@ function k8::set_context_delta
   export KOPS_STATE_STORE=s3://runnable-delta-kubernetes-config
   export CLUSTER_NAME=kubernetes.runnable.com
   export VPC_ID=vpc-864c6be3
-  kubectl config use-context $CLUSTER_NAME
 }
 
-function k8::list_all_pods # <service_name>
+function k8::list_all_pods # <env> <service_name>
 {
-  kubectl get pods | grep -v NAME | grep "$1-[0-9]"
+  k8 $1 get pods | grep -v NAME | grep "$2-[0-9]"
 }
 
-function k8::get_all_pods # <service_name>
+function k8::get_all_pods # <env> <service_name>
 {
-  k8::list_all_pods $1 | cut -f 1 -d' '
+  k8::list_all_pods $1 $2 | cut -f 1 -d' '
 }
 
-function k8::get_running_pods # <service_name>
+function k8::get_running_pods # <env> <service_name>
 {
-  k8::list_all_pods $1 | grep Running | cut -f 1 -d' '
+  k8::list_all_pods $1 $2 | grep Running | cut -f 1 -d' '
 }
 
-function k8::get_one_pod # <service_name>
+function k8::get_one_pod # <env> <service_name>
 {
-  k8::list_all_pods $1 | head -n1 | cut -f 1 -d' '
+  k8::list_all_pods $1 $2 | head -n1 | cut -f 1 -d' '
 }
 
-function k8::get_one_running_pod # <service_name>
+function k8::get_one_running_pod # <env> <service_name>
 {
-  k8::list_all_pods $1 | grep Running | head -n1 | cut -f 1 -d' '
+  k8::list_all_pods $1 $2 | grep Running | head -n1 | cut -f 1 -d' '
 }
 
-function k8::delete_pods
+function k8::delete_pods # <env> <service_name>
 {
-  PODS=`k8::get_all_pods $1`
-  echo kubectl delete pod $PODS
-  kubectl delete pod $PODS
+  PODS=`k8::get_all_pods $1 $2`
+  echo k8 $1 delete pod $PODS
+  k8 $1 delete pod $PODS
 }
 
-function k8::pod_logs # <service_name> [tail]
+function k8::logs # <env> <service_name> [tail]
 {
-  TAIL=${2:-10}
-  echo k8::get_all_pods $1 \| xargs -n1 -P 100 kubectl logs -f --tail=$TAIL
-  k8::get_all_pods $1 | xargs -n1 -P 100 kubectl logs -f --tail=$TAIL
+  TAIL=${3:-10}
+  echo k8::get_all_pods $1 $2 \| xargs -n1 -I % -P 100 bash -c \"k8 $1 logs -f --tail=$TAIL %\"
+  k8::get_all_pods $1 $2 | xargs -n1 -I % -P 100 bash -c "k8 $1 logs -f --tail=$TAIL %"
 }
 
-function k8::exec_pod # <service_name>
+function k8::exec_pod # <env> <service_name>
 {
-  POD=`k8::get_one_pod $1`
-  echo kubectl exec -it $POD bash
-  kubectl exec -it $POD bash
+  POD=`k8::get_one_pod $1 $2`
+  echo k8 $1 exec -it $POD bash
+  k8 $1 exec -it $POD bash
 }
 
-function k8::port_forward # <service_name> <local_port:remote_port>
+function k8::exec_command # <env> <service_name> <command>
 {
-  POD=`k8::get_one_pod $1`
-  echo kubectl port-forward $POD $2 \&\>/dev/null \&disown
-  kubectl port-forward $POD $2 &>/dev/null &disown
+  POD=`k8::get_one_running_pod $1 $2`
+  local context=`k8::env_to_context $1`
+  kubectl --context "${context}" exec $POD -- bash -c "${3}"
+}
+
+function k8::port_forward # <env> <service_name> <local_port:remote_port>
+{
+  POD=`k8::get_one_pod $1 $2`
+  echo k8 $1 port-forward $POD $3 \&\>/dev/null \&disown
+  k8 $1 port-forward $POD $3 &>/dev/null &disown
 }
 
 _services()
@@ -129,14 +155,12 @@ function k8::apply # <env> <service> [type] [file]
 {
   env=$1
   service=$2
-  type=${3:='*'}
-  file=${4:='*'}
+  type=${3:-'*'}
+  file=${4:-'*'}
 
-  k8::set_context $env
   cd $ANSIBLE_ROOT/k8/$env/$service
-  ls ./$type/$file | xargs -n1 echo kubectl apply -f
-  ls ./$type/$file | xargs -n1 kubectl apply -f
-  k8::set_prev_context
+  ls ./$type/$file | xargs -n1 echo k8 $env apply -f
+  ls ./$type/$file | xargs -n1 k8 $env apply -f
 }
 
 _apply()

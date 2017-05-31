@@ -79,10 +79,9 @@ function deploy # <env> <app> <tag> [...extra]
   fi
 
   ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
-  k8::set_context $env
   echo now please apply the changes to k8:
   echo
-  git ls-files -m | xargs -n1 echo kubectl apply -f
+  git ls-files -m | xargs -n1 echo k8 $env apply -f
 }
 
 _deploy()
