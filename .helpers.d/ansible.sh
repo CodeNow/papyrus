@@ -64,7 +64,9 @@ function deploy # <env> <app> <tag> [...extra]
     shift 1
   fi
 
-  echo ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
+  CURRENT_ENV_PATH=$(cd "${ANSIBLE_ROOT}/../environments/${env}/"; pwd)
+  MAIN_VAR_FILE="-e ${CURRENT_ENV_PATH}/main.yml"
+  echo ansible-playbook -i "${CURRENT_ENV_PATH}/inventory" $MAIN_VAR_FILE --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
 
   if [[ "$env" = "delta" ]]; then
     echo ensure we have latest
@@ -78,7 +80,7 @@ function deploy # <env> <app> <tag> [...extra]
     git pull
   fi
 
-  ansible-playbook -i "${ANSIBLE_ROOT}/${target_env}" --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
+  ansible-playbook -i "${CURRENT_ENV_PATH}/inventory" $MAIN_VAR_FILE --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
   k8::set_context $env
   echo now please apply the changes to k8:
   echo
