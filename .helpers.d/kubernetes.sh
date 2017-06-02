@@ -103,8 +103,8 @@ function k8::delete_pods # <env> <service_name>
 function k8::logs # <env> <service_name> [tail]
 {
   TAIL=${3:-10}
-  echo k8::get_all_pods $1 $2 \| xargs -n1 -I % -P 100 bash -c \"k8 $1 logs -f --tail=$TAIL %\"
-  k8::get_all_pods $1 $2 | xargs -n1 -I % -P 100 bash -c "k8 $1 logs -f --tail=$TAIL %"
+  echo k8::get_all_pods $1 $2 \| xargs -n1 -I % -P 100 bash -login -c \"k8 $1 logs -f --tail=$TAIL %\"
+  k8::get_all_pods $1 $2 | xargs -n1 -I % -P 100 bash -login -c "k8 $1 logs -f --tail=$TAIL %"
 }
 
 function k8::exec_pod # <env> <service_name>
@@ -118,7 +118,7 @@ function k8::exec_command # <env> <service_name> <command>
 {
   POD=`k8::get_one_running_pod $1 $2`
   local context=`k8::env_to_context $1`
-  kubectl --context "${context}" exec $POD -- bash -c "${3}"
+  kubectl --context "${context}" exec $POD -- bash -login -c "${3}"
 }
 
 function k8::port_forward # <env> <service_name> <local_port:remote_port>
