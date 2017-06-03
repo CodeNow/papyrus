@@ -107,7 +107,7 @@ function k8::logs # <env> <service_name> [tail]
   k8::get_all_pods $1 $2 | xargs -n1 -I % -P 100 bash -login -c "k8 $1 logs -f --tail=$TAIL %"
 }
 
-function k8::exec_pod # <env> <service_name>
+function k8::exec # <env> <service_name>
 {
   POD=`k8::get_one_pod $1 $2`
   echo k8 $1 exec -it $POD bash
