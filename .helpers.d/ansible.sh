@@ -65,7 +65,7 @@ function deploy # <env> <app> <tag> [...extra]
   fi
 
   CURRENT_ENV_PATH=$(cd "${ANSIBLE_ROOT}/../environments/${env}/"; pwd)
-  MAIN_VAR_FILE="-e ${CURRENT_ENV_PATH}/main.yml"
+  MAIN_VAR_FILE="-e @${CURRENT_ENV_PATH}/main.yml"
   echo ansible-playbook -i "${CURRENT_ENV_PATH}/inventory" $MAIN_VAR_FILE --vault-password-file ~/.vaultpass -e git_branch="${tag}" "${deploy_file}" "${@}"
 
   if [[ "$env" = "delta" ]]; then
