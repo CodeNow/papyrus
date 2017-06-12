@@ -17,6 +17,8 @@ complete -o default -F _c c
 function util::for_each_repo # [action_to_preform]
 {
   for I in `ls -d $RUN_ROOT/*/`; do
+    # Remove color codes
+    I=$(echo $I | sed -r "s/\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[mGK]//g")
     if [ ! -d "$I/.git" ]; then
       continue
     fi
