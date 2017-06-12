@@ -16,7 +16,7 @@ complete -o default -F _c c
 
 function util::for_each_repo # [action_to_preform]
 {
-  for I in `ls -d $RUN_ROOT/*/`; do
+  for I in `/bin/ls -d $RUN_ROOT/*/`; do
     if [ ! -d "$I/.git" ]; then
       continue
     fi
