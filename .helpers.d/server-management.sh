@@ -24,28 +24,28 @@ function tunnel # <local_port> <remote_host> <remote_port>
   ssh -NL $localPort:$remoteHostName:$remotePort $remoteHost &
 }
 
-function portForwardSwarm
+function portForwardSwarm # <env>
 {
   export DOCKER_HOST=tcp://localhost:52375
   export DOCKER_CERT_PATH=$RUN_ROOT/devops-scripts/ansible/roles/docker_client/files/certs/swarm-manager
   export DOCKER_TLS_VERIFY=1
-  k8::port_forward swarm-manager 52375:2375
+  k8::port_forward $1 swarm-manager 52375:2375
 }
 
-alias setupSwarmGamma='k8::set_context_gamma && setup portForwardSwarm'
-alias setupSwarmDelta='k8::set_context_delta && setup portForwardSwarm'
+alias setupSwarmGamma='setup portForwardSwarm gamma'
+alias setupSwarmDelta='setup portForwardSwarm delta'
 
 function setupRabbit # <host>
 {
   tunnel 8080 "$1" 54320
 }
 
-function portForwardRabbit
+function portForwardRabbit # <env>
 {
-  k8::port_forward rabbitmq 8080:15672
+  k8::port_forward $1 rabbitmq 8080:15672
 }
 
-alias setupRabbitGamma='k8::set_context_gamma && setup portForwardRabbit'
+alias setupRabbitGamma='setup portForwardRabbit gamma'
 alias setupRabbitDelta='setup setupRabbit delta-rabbit'
 
 function setupConsul # <host>
@@ -57,23 +57,23 @@ alias setupConsulGamma='setup setupConsul gamma-consul-a'
 alias setupConsulDelta='setup setupConsul delta-consul-a'
 alias setupConsulStaging='setup setupConsul delta-staging-data'
 
-function setupPrometheus
+function setupPrometheus # <env>
 {
-  k8::port_forward prometheus 9090:9090
+  k8::port_forward $1 prometheus 9090:9090
 }
 
-function setupPrometheusAlert
+function setupPrometheusAlert # <env>
 {
-  k8::port_forward prometheus-alerts 9093:9093
+  k8::port_forward $1 prometheus-alerts 9093:9093
 }
 
-function setupGrafana
+function setupGrafana # <env>
 {
-  k8::port_forward prometheus-alerts 9089:9089
+  k8::port_forward $1 prometheus-alerts 9089:9089
 }
 
-alias setupPromGamma='k8::set_context_gamma && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
-alias setupPromDelta='k8::set_context_delta && setup setupPrometheus && setup setupPrometheusAlert && setup setupGrafana'
+alias setupPromGamma='setup setupPrometheus gamma && setup setupPrometheusAlert gamma && setup setupGrafana gamma'
+alias setupPromDelta='setup setupPrometheus delta && setup setupPrometheusAlert delta && setup setupGrafana delta'
 
 alias setupMetabase='setup tunnel 8989 delta-metabase 4444'
 
