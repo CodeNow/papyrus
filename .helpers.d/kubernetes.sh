@@ -134,9 +134,13 @@ _services()
   COMPREPLY=()
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD-1]}"
-  opts=`ls $ANSIBLE_ROOT/*yml | sed -e "s%$ANSIBLE_ROOT/%%g" -e "s/.yml//g"`
 
   if [[ ${COMP_CWORD} -eq 1 ]] ; then
+    COMPREPLY=( $(compgen -W "${ENVS}" -- ${cur}) )
+  fi
+
+  if [[ ${COMP_CWORD} -eq 2 ]] ; then
+    opts=`ls $ANSIBLE_ROOT/*yml | sed -e "s%$ANSIBLE_ROOT/%%g" -e "s/.yml//g"`
     COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
   fi
 }
@@ -147,8 +151,8 @@ complete -F _services k8::get_running_pods
 complete -F _services k8::get_one_running_pod
 complete -F _services k8::get_one_pod
 complete -F _services k8::delete_pods
-complete -F _services k8::pod_logs
-complete -F _services k8::exec_pod
+complete -F _services k8::logs
+complete -F _services k8::exec
 complete -F _services k8::port_forward
 
 function k8::apply # <env> <service> [type] [file]
