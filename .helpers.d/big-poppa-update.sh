@@ -51,7 +51,7 @@ function update_big_poppa # context organization/user id/githubid/name value
   json=$(python -c "import json; print json.dumps($json_string)")
   echo "Updates: $json"
 
-  output=$(k8::exec_command $context "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url")
+  output=$(k8::exec_command $context "big-poppa-http" "curl -sS --request PATCH -H 'Content-Type: application/json' -d '$json' $url")
   # Pop used params from arguments array
   shift 6
 
